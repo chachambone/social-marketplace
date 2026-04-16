@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <meta name="description" content="<%= description %>">
+    
+    <!-- Tailwind CSS (will be replaced by compiled CSS later) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Lit Element (using CDN for simplicity) -->
+    <script type="module" src="https://cdn.jsdelivr.net/npm/lit@3.2.1/index.js"></script>
+    
+    <!-- Custom styles -->
+    <link rel="stylesheet" href="/css/main.css">
+</head>
+<body class="bg-gray-50">
+    <!-- Main App Container -->
+    <div id="app">
+        <!-- Server-side rendered shell -->
+        <header class="bg-white shadow-sm">
+            <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+                <div class="flex justify-between items-center">
+                    <h1 class="text-2xl font-bold text-gray-900">
+                        🃏 Collectible Trading Post
+                    </h1>
+                    <div id="user-status"></div>
+                </div>
+            </nav>
+        </header>
+
+        <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <!-- Dynamic content will be rendered by Lit components -->
+            <marketplace-app></marketplace-app>
+        </main>
+    </div>
+
+    <!-- Load compiled TypeScript components -->
+    <script type="module" src="/dist/app.js"></script>
+</body>
+</html>

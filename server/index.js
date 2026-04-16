@@ -3,8 +3,8 @@ import cors from 'cors';
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
-import itemsRouter from './routes/items.js';
-import usersRouter from './routes/users.js';
+import itemsRouter from './routes/items.js';      
+import usersRouter from './routes/users.js';      
 import messagesRouter from './routes/messages.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -13,21 +13,41 @@ const __dirname = dirname(__filename);
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// ===== NEW: View Engine Setup =====
+app.set('view engine', 'ejs');
+app.set('views', join(__dirname, '../views'));
+
+// ===== NEW: Serve static files =====
+app.use(express.static(join(__dirname, '../public')));
+// Serve compiled TypeScript from public/dist
+app.use('/dist', express.static(join(__dirname, '../public/dist')));
+// Serve Lit from node_modules (optional - can also use CDN)
+app.use('/lit', express.static(join(__dirname, '../node_modules/lit')));
+
 // Middleware
 app.use(cors());
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.urlencoded({ extended: true }));  
 
 // Ensure data directory exists
 const dataDir = join(__dirname, 'data');
 if (!existsSync(dataDir)) {
-  mkdirSync(dataDir, { recursive: true });
+  mkdirSync(dataDir, { recursive: true });        
 }
+
+// ===== NEW: Main route to serve the marketplace shell =====
+app.get('/', (req, res) => {
+  // Pass initial data to EJS template
+  res.render('index', {
+    title: 'Social Marketplace - Collectible Trading Post',
+    description: 'Buy, sell, and negotiate prices on collectible items'
+  });
+});
 
 // Initialize data files with sample data
 const initDataFiles = () => {
   // Items data
-  const itemsPath = join(dataDir, 'items.json');
+  const itemsPath = join(dataDir, 'items.json');  
   if (!existsSync(itemsPath)) {
     const sampleItems = [
       {
@@ -41,7 +61,7 @@ const initDataFiles = () => {
         status: 'active',
         highestOffer: null,
         highestOfferBuyer: null,
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString()       
       },
       {
         id: '2',
@@ -54,11 +74,11 @@ const initDataFiles = () => {
         status: 'active',
         highestOffer: null,
         highestOfferBuyer: null,
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString()       
       },
       {
         id: '3',
-        name: 'Pokemon Card - Charizard Holo',
+        name: 'Pokemon Card - Charizard Holo',    
         description: 'First edition, graded PSA 9, extremely rare',
         price: 1200,
         image: 'https://images.unsplash.com/photo-1621274403997-37aace184f49?w=400',
@@ -67,7 +87,7 @@ const initDataFiles = () => {
         status: 'active',
         highestOffer: null,
         highestOfferBuyer: null,
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString()       
       },
       {
         id: '4',
@@ -80,7 +100,7 @@ const initDataFiles = () => {
         status: 'active',
         highestOffer: null,
         highestOfferBuyer: null,
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString()       
       },
       {
         id: '5',
@@ -93,14 +113,14 @@ const initDataFiles = () => {
         status: 'active',
         highestOffer: null,
         highestOfferBuyer: null,
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString()       
       }
     ];
     writeFileSync(itemsPath, JSON.stringify(sampleItems, null, 2));
   }
 
   // Users data
-  const usersPath = join(dataDir, 'users.json');
+  const usersPath = join(dataDir, 'users.json');  
   if (!existsSync(usersPath)) {
     const sampleUsers = [
       { id: 'user1', name: 'ComicCollector', createdAt: new Date().toISOString() },
@@ -128,7 +148,7 @@ const initDataFiles = () => {
         itemId: '1',
         senderId: 'user1',
         senderName: 'ComicCollector',
-        content: 'Yes, it is! Interested?',
+        content: 'Yes, it is! Interested?',       
         type: 'text',
         timestamp: new Date(Date.now() - 86000000).toISOString()
       },
@@ -168,7 +188,7 @@ app.use((err, req, res, next) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`Server running`);
-  console.log(`Data directory: ${dataDir}`);
-  console.log(`Health check`);
+  console.log(`Server running on http://localhost:${PORT}`);
+  console.log(`Data directory: ${dataDir}`);      
+  console.log(`✅ Server ready`);
 });
