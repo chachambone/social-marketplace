@@ -6,13 +6,22 @@
     <title><%= title %></title>
     <meta name="description" content="<%= description %>">
     
-    <!-- Preconnect for faster CDN loading -->
-    <link rel="preconnect" href="https://cdn.jsdelivr.net">
+    <!-- Import Map for Lit CDN - This is critical! -->
+    <script type="importmap">
+        {
+            "imports": {
+                "lit": "https://cdn.jsdelivr.net/npm/lit@3.2.1/index.js",
+                "lit/": "https://cdn.jsdelivr.net/npm/lit@3.2.1/",
+                "@lit/reactive-element": "https://cdn.jsdelivr.net/npm/@lit/reactive-element@2.0.4/reactive-element.js",
+                "@lit/reactive-element/": "https://cdn.jsdelivr.net/npm/@lit/reactive-element@2.0.4/",
+                "lit-element/lit-element.js": "https://cdn.jsdelivr.net/npm/lit-element@4.1.0/lit-element.js",
+                "lit-html": "https://cdn.jsdelivr.net/npm/lit-html@3.2.0/lit-html.js",
+                "lit-html/": "https://cdn.jsdelivr.net/npm/lit-html@3.2.0/"
+            }
+        }
+    </script>
     
-    <!-- Lit Element (ES modules) -->
-    <script type="module" src="https://cdn.jsdelivr.net/npm/lit@3.2.1/index.js"></script>
-    
-    <!-- OUR compiled Tailwind CSS (via PostCSS) - Production optimized -->
+    <!-- OUR compiled Tailwind CSS (via PostCSS) -->
     <link rel="stylesheet" href="/css/main.css">
     
     <!-- Fallback styles for no JavaScript -->
@@ -29,16 +38,8 @@
     </noscript>
 </head>
 <body class="bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen">
-    <!-- No JavaScript fallback -->
-    <noscript>
-        <div class="no-js-warning">
-            ⚠️ JavaScript is required for this application to function properly.
-        </div>
-    </noscript>
-
-    <!-- Main App Container -->
+    <!-- Rest of your body remains the same -->
     <div id="app" class="flex flex-col min-h-screen">
-        <!-- Server-side rendered shell with improved design -->
         <header class="bg-white shadow-md sticky top-0 z-50">
             <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
                 <div class="flex justify-between items-center">
@@ -48,25 +49,19 @@
                             Collectible Trading Post
                         </h1>
                     </div>
-                    <div id="user-status" class="flex items-center space-x-4">
-                        <!-- Dynamically populated by Lit -->
-                    </div>
+                    <div id="user-status" class="flex items-center space-x-4"></div>
                 </div>
             </nav>
         </header>
 
         <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <!-- Loading indicator -->
             <div id="loading-indicator" class="text-center py-12">
                 <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
                 <p class="mt-2 text-gray-600">Loading marketplace...</p>
             </div>
-            
-            <!-- Dynamic content will be rendered by Lit components -->
             <marketplace-app></marketplace-app>
         </main>
 
-        <!-- Footer -->
         <footer class="bg-white border-t border-gray-200 mt-auto">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
                 <p class="text-center text-gray-500 text-sm">
@@ -79,9 +74,7 @@
     <!-- Load compiled TypeScript components -->
     <script type="module" src="/dist/app.js"></script>
     
-    <!-- Hide loading indicator after components load -->
     <script>
-        // Simple script to hide loading indicator when marketplace-app is ready
         window.addEventListener('DOMContentLoaded', () => {
             const observer = new MutationObserver((mutations) => {
                 const app = document.querySelector('marketplace-app');
@@ -95,7 +88,6 @@
             });
             observer.observe(document.body, { childList: true, subtree: true });
             
-            // Timeout fallback - hide after 3 seconds even if component not ready
             setTimeout(() => {
                 const loadingIndicator = document.getElementById('loading-indicator');
                 if (loadingIndicator && loadingIndicator.style.display !== 'none') {

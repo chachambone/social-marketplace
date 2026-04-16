@@ -12,12 +12,12 @@
     "lit": "^3.3.2"
   },
   "scripts": {
-  "dev": "concurrently \"npm run watch:css\" \"npm run watch:ts\" \"nodemon server/index.js\"",
-  "watch:ts": "tsc --watch",
-  "watch:css": "npx tailwindcss -i ./public/css/input.css -o ./public/css/main.css --watch",
-  "build:ts": "tsc",
-  "build:css": "npx tailwindcss -i ./public/css/input.css -o ./public/css/main.css --minify",
-  "build": "npm run build:ts && npm run build:css",
-  "setup": "npm install && npm run build"
-}
+    "dev": "concurrently \"npm run watch:css\" \"npm run watch:ts\" \"nodemon server/index.js\"",
+    "watch:ts": "tsc --watch",
+    "watch:css": "npx tailwindcss -i ./public/css/input.css -o ./public/css/main.css --watch",
+    "build:ts": "tsc",
+    "build:css": "npx tailwindcss -i ./public/css/input.css -o ./public/css/main.css --minify",
+    "build": "npm run build:ts && npm run build:css",
+    "setup": "npm install && npm run build"
+  }
 }
