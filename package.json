@@ -1,0 +1,19 @@
+{
+  "devDependencies": {
+    "@types/node": "^25.6.0",
+    "autoprefixer": "^10.5.0",
+    "postcss": "^8.5.10",
+    "tailwindcss": "^4.2.2",
+    "typescript": "^6.0.2"
+  },
+  "dependencies": {
+    "ejs": "^5.0.2",
+    "lit": "^3.3.2"
+  },
+  "scripts": {
+  "dev": "nodemon server/index.js",
+  "build": "tsc",
+  "watch": "tsc --watch",
+  "setup": "npm install && npx tailwindcss init -p"
+}
+}
