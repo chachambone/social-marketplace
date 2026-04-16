@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "ES2020",
     "module": "ESNext",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "lib": ["ES2020", "DOM", "DOM.Iterable"],
     "outDir": "./public/dist",
     "rootDir": "./client",
@@ -11,8 +11,13 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "experimentalDecorators": true,
-    "useDefineForClassFields": false
+    "useDefineForClassFields": false,
+    "noEmitOnError": false,
+    "allowJs": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "ignoreDeprecations": "6.0"
   },
   "include": ["client/**/*"],
-  "exclude": ["node_modules", "server"]
+  "exclude": ["node_modules", "server", "**/*.spec.ts"]
 }
