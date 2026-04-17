@@ -1,4 +1,4 @@
-[
+export const items =[
   {
     "id": "ca29c452-f3da-431e-a722-a38117487229",
     "name": "MacBook Pro 14\" M3 — Space Grey",

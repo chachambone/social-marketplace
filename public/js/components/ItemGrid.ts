@@ -1,18 +1,16 @@
-import { LitElement, html, css } from 'lit';
+import { LitElement, html, css,unsafeCSS } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 import { ItemService } from '../services/item.js';
 import { AuthService } from '../services/auth.js';
 import { Item } from '../types/index.js';
 import './ItemCard.js';
+import { tailwindCSS } from '../styles.js';
 
 @customElement('items-grid')
 export class ItemsGrid extends LitElement {
-  @state() private items: Item[] = [];
-  @state() private loading = true;
-  @state() private error = '';
-  @state() private searchTerm = '';
+  static styles = [unsafeCSS(tailwindCSS),
 
-  static styles = css`
+    css`
     :host { display: block; }
     .search-bar { margin-bottom: 2rem; }
     .search-input { width: 100%; max-width: 400px; padding: 0.75rem; border: 1px solid #e5e7eb; border-radius: 0.5rem; }
@@ -20,7 +18,16 @@ export class ItemsGrid extends LitElement {
     .loading, .error, .empty { text-align: center; padding: 3rem; }
     .spinner { display: inline-block; width: 40px; height: 40px; border: 3px solid #f3f4f6; border-top-color: #3b82f6; border-radius: 50%; animation: spin 1s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
-  `;
+  `
+  
+  ];
+
+  @state() private items: Item[] = [];
+  @state() private loading = true;
+  @state() private error = '';
+  @state() private searchTerm = '';
+
+
 
   connectedCallback() {
     super.connectedCallback();

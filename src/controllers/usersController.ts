@@ -6,6 +6,7 @@ import { readUsers, writeUsers } from '../utils/fileHelpers.js';
 import { sendWelcomeEmail } from '../utils/email.service.js';
 import { authConfig } from '../config/auth.config.js';
 import { AppError } from '../middleware/error.middleware.js';
+import { users } from '../data/users.js';
 
 interface User {
   id: string;
@@ -85,7 +86,7 @@ export const login = async (req: Request, res: Response) => {
       throw new AppError('Email and password are required', 400);
     }
 
-    const users: User[] = readUsers();
+
     const user = users.find(u => u.email === email);
 
     if (!user) {

@@ -4,11 +4,12 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
-import { LitElement, html } from 'lit';
+import { LitElement, html, unsafeCSS } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 import { AuthService } from './services/auth.js';
 import './components/LoginForm.js';
 import './components/ItemsGrid.js';
+import { tailwindCSS } from './styles.js';
 let MarketplaceApp = class MarketplaceApp extends LitElement {
     constructor() {
         super();
@@ -50,6 +51,7 @@ let MarketplaceApp = class MarketplaceApp extends LitElement {
     `;
     }
 };
+MarketplaceApp.styles = unsafeCSS(tailwindCSS);
 __decorate([
     state()
 ], MarketplaceApp.prototype, "user", void 0);

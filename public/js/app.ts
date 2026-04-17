@@ -1,12 +1,14 @@
-import { LitElement, html } from 'lit';
+import { LitElement, html,unsafeCSS } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 import { AuthService } from './services/auth.js';
 import { User } from './types/index.js';
 import './components/LoginForm.js';
 import './components/ItemsGrid.js';
+import { tailwindCSS } from './styles.js';
 
 @customElement('marketplace-app')
 export class MarketplaceApp extends LitElement {
+   static styles = unsafeCSS(tailwindCSS);
   @state() private user: User | null = null;
 
   constructor() {

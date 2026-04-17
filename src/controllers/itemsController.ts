@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { readItems, writeItems } from '../utils/fileHelpers.js';
 import { v4 as uuidv4 } from 'uuid';
+import { items } from '../data/items.js';
 
 interface Item {
   id: string;
@@ -21,13 +22,15 @@ interface Item {
 
 export const getAllItems = (req: Request, res: Response) => {
   try {
-    let items: Item[] = readItems();
-    items = items.filter((item: Item) => item.status === 'active');
+    
+
+    console.log("items are ",items)
+    items.filter((item: Item) => item.status === 'active');
 
     const { search } = req.query;
     if (search && typeof search === 'string' && search.trim()) {
       const searchTerm = search.toLowerCase().trim();
-      items = items.filter((item: Item) =>
+      items.filter((item: Item) =>
         item.name.toLowerCase().includes(searchTerm) ||
         item.description.toLowerCase().includes(searchTerm)
       );

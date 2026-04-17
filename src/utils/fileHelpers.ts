@@ -1,27 +1,52 @@
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
 import { join } from 'path';
 
-const dataDir = join(process.cwd(), 'data');
+// Try multiple possible paths for data
+const possibleDataPaths = [
+  join(process.cwd(), 'src', 'data'),     // src/data (your current location)
+  join(process.cwd(), 'data'),            // root/data
+  join(process.cwd(), 'server', 'data'),  // server/data
+];
 
-// Ensure data directory exists
-if (!existsSync(dataDir)) {
-  mkdirSync(dataDir, { recursive: true });
+let dataDir = '';
+for (const path of possibleDataPaths) {
+  if (existsSync(path)) {
+    dataDir = path;
+    console.log(`✅ Found data directory: ${dataDir}`);
+    break;
+  }
+}
+
+// If no data directory found, create one in src/data
+if (!dataDir) {
+  dataDir = join(process.cwd(), 'src', 'data');
+  if (!existsSync(dataDir)) {
+    mkdirSync(dataDir, { recursive: true });
+  }
+  console.log(`📁 Created data directory: ${dataDir}`);
 }
 
 const itemsPath = join(dataDir, 'items.json');
 const usersPath = join(dataDir, 'users.json');
 const messagesPath = join(dataDir, 'messages.json');
 
+console.log(`📦 Items path: ${itemsPath}`);
+
 export const readItems = () => {
+  console.log(`📦 Items path: ${itemsPath}`);
   if (!existsSync(itemsPath)) {
+    console.log(`⚠️ items.json not found at ${itemsPath}, creating empty array`);
     writeFileSync(itemsPath, JSON.stringify([], null, 2));
   }
   const data = readFileSync(itemsPath, 'utf-8');
-  return JSON.parse(data);
+  const items = JSON.parse(data);
+  console.log(`📖 Read ${items.length} items from ${itemsPath}`);
+  return items;
 };
 
 export const writeItems = (items: any[]) => {
   writeFileSync(itemsPath, JSON.stringify(items, null, 2));
+  console.log(`💾 Wrote ${items.length} items to ${itemsPath}`);
 };
 
 export const readUsers = () => {
