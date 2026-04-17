@@ -4,15 +4,18 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
-import { LitElement, html, css } from 'lit';
+import { LitElement, html, unsafeCSS } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 import { AuthService } from '../services/auth.js';
+import { tailwindCSS } from '../styles.js';
 let LoginForm = class LoginForm extends LitElement {
     constructor() {
         super(...arguments);
         this.isLoginMode = true;
-        this.name = '';
+        this.email = '';
+        this.username = '';
         this.password = '';
+        this.userType = 'buyer';
         this.error = '';
         this.isLoading = false;
     }
@@ -21,15 +24,15 @@ let LoginForm = class LoginForm extends LitElement {
         this.error = '';
         this.isLoading = true;
         try {
-            let user;
+            let response;
             if (this.isLoginMode) {
-                user = await AuthService.login(this.name, this.password);
+                response = await AuthService.login(this.email, this.password);
             }
             else {
-                user = await AuthService.register(this.name, this.password);
+                response = await AuthService.register(this.email, this.username, this.password, this.userType);
             }
             this.dispatchEvent(new CustomEvent('login-success', {
-                detail: user,
+                detail: response.user,
                 bubbles: true,
                 composed: true
             }));
@@ -43,53 +46,113 @@ let LoginForm = class LoginForm extends LitElement {
     }
     render() {
         return html `
-      <form @submit=${this.handleSubmit}>
-        <h2>${this.isLoginMode ? 'Login' : 'Register'}</h2>
-        ${this.error ? html `<div class="error">${this.error}</div>` : ''}
-        <div class="form-group">
-          <label>Username</label>
-          <input type="text" .value=${this.name} @input=${(e) => this.name = e.target.value} required>
+      <div class="max-w-md mx-auto mt-16 p-8 bg-white rounded-lg shadow-lg">
+        <h2 class="text-2xl font-bold text-center mb-6 text-gray-800">
+          ${this.isLoginMode ? 'Welcome Back!' : 'Create Account'}
+        </h2>
+        
+        <form @submit=${this.handleSubmit} class="space-y-4">
+          ${this.error ? html `
+            <div class="bg-red-100 text-red-700 p-3 rounded-lg text-sm">
+              ${this.error}
+            </div>
+          ` : ''}
+          
+          <!-- Email input with flex container -->
+          <div class="flex flex-col gap-1">
+            <label class="text-sm font-medium text-gray-700">Email</label>
+            <input 
+              type="email" 
+              .value=${this.email}
+              @input=${(e) => this.email = e.target.value}
+              class="flex-1 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              required
+            >
+          </div>
+          
+          ${!this.isLoginMode ? html `
+            <!-- Username input with flex container -->
+            <div class="flex flex-col gap-1">
+              <label class="text-sm font-medium text-gray-700">Username</label>
+              <input 
+                type="text" 
+                .value=${this.username}
+                @input=${(e) => this.username = e.target.value}
+                class="flex-1 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                required
+              >
+            </div>
+          ` : ''}
+          
+          <!-- Password input with flex container -->
+          <div class="flex flex-col gap-1">
+            <label class="text-sm font-medium text-gray-700">Password</label>
+            <input 
+              type="password" 
+              .value=${this.password}
+              @input=${(e) => this.password = e.target.value}
+              class="flex-1 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              required
+              minlength="6"
+            >
+          </div>
+          
+          ${!this.isLoginMode ? html `
+            <!-- User type select with flex container -->
+            <div class="flex flex-col gap-1">
+              <label class="text-sm font-medium text-gray-700">I want to</label>
+              <select 
+                .value=${this.userType}
+                @change=${(e) => this.userType = e.target.value}
+                class="flex-1 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              >
+                <option value="buyer">Buy items</option>
+                <option value="seller">Sell items</option>
+              </select>
+            </div>
+          ` : ''}
+          
+          <!-- Button with flex container -->
+          <div class="flex">
+            <button 
+              type="submit" 
+              ?disabled=${this.isLoading}
+              class="flex-1 w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+            >
+              ${this.isLoading ? 'Please wait...' : (this.isLoginMode ? 'Sign In' : 'Register')}
+            </button>
+          </div>
+        </form>
+        
+        <!-- Toggle button container with flex -->
+        <div class="mt-4 flex justify-center">
+          <button 
+            @click=${() => { this.isLoginMode = !this.isLoginMode; this.error = ''; }}
+            class="text-blue-600 hover:text-blue-700 text-sm font-medium"
+          >
+            ${this.isLoginMode ? 'Need an account? Register' : 'Already have an account? Sign In'}
+          </button>
         </div>
-        <div class="form-group">
-          <label>Password</label>
-          <input type="password" .value=${this.password} @input=${(e) => this.password = e.target.value} required>
-        </div>
-        <button type="submit" ?disabled=${this.isLoading}>${this.isLoading ? 'Please wait...' : (this.isLoginMode ? 'Login' : 'Register')}</button>
-        <div class="toggle-mode" @click=${() => { this.isLoginMode = !this.isLoginMode; this.error = ''; }}>
-          ${this.isLoginMode ? 'Need an account? Register' : 'Already have an account? Login'}
-        </div>
-      </form>
+      </div>
     `;
     }
 };
-LoginForm.styles = css `
-    :host {
-      display: block;
-      max-width: 400px;
-      margin: 2rem auto;
-      padding: 2rem;
-      background: white;
-      border-radius: 8px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-    .form-group { margin-bottom: 1rem; }
-    label { display: block; margin-bottom: 0.5rem; font-weight: 500; }
-    input { width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; }
-    button { width: 100%; padding: 0.75rem; background: #3b82f6; color: white; border: none; border-radius: 4px; cursor: pointer; }
-    button:disabled { background: #9ca3af; }
-    .error { color: #ef4444; margin-bottom: 1rem; padding: 0.5rem; background: #fee2e2; border-radius: 4px; }
-    .toggle-mode { margin-top: 1rem; text-align: center; color: #3b82f6; cursor: pointer; }
-    h2 { margin-top: 0; text-align: center; }
-  `;
+LoginForm.styles = unsafeCSS(tailwindCSS);
 __decorate([
     state()
 ], LoginForm.prototype, "isLoginMode", void 0);
 __decorate([
     state()
-], LoginForm.prototype, "name", void 0);
+], LoginForm.prototype, "email", void 0);
+__decorate([
+    state()
+], LoginForm.prototype, "username", void 0);
 __decorate([
     state()
 ], LoginForm.prototype, "password", void 0);
+__decorate([
+    state()
+], LoginForm.prototype, "userType", void 0);
 __decorate([
     state()
 ], LoginForm.prototype, "error", void 0);

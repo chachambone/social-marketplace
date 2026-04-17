@@ -1,12 +1,17 @@
-import { LitElement, html } from 'lit';
+import { LitElement, html, unsafeCSS } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 import { AuthService } from '../services/auth.js';
+import { tailwindCSS } from '../styles.js';
 
 @customElement('login-form')
 export class LoginForm extends LitElement {
+  static styles = unsafeCSS(tailwindCSS);
+  
   @state() private isLoginMode = true;
-  @state() private name = '';
+  @state() private email = '';
+  @state() private username = '';
   @state() private password = '';
+  @state() private userType: 'buyer' | 'seller' = 'buyer';
   @state() private error = '';
   @state() private isLoading = false;
 
@@ -16,15 +21,15 @@ export class LoginForm extends LitElement {
     this.isLoading = true;
 
     try {
-      let user;
+      let response;
       if (this.isLoginMode) {
-        user = await AuthService.login(this.name, this.password);
+        response = await AuthService.login(this.email, this.password);
       } else {
-        user = await AuthService.register(this.name, this.password);
+        response = await AuthService.register(this.email, this.username, this.password, this.userType);
       }
       
       this.dispatchEvent(new CustomEvent('login-success', { 
-        detail: user, 
+        detail: response.user, 
         bubbles: true, 
         composed: true 
       }));
@@ -49,42 +54,77 @@ export class LoginForm extends LitElement {
             </div>
           ` : ''}
           
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Username</label>
+          <!-- Email input with flex container -->
+          <div class="flex flex-col gap-1">
+            <label class="text-sm font-medium text-gray-700">Email</label>
             <input 
-              type="text" 
-              .value=${this.name}
-              @input=${(e: Event) => this.name = (e.target as HTMLInputElement).value}
-              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              type="email" 
+              .value=${this.email}
+              @input=${(e: Event) => this.email = (e.target as HTMLInputElement).value}
+              class="flex-1 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
               required
             >
           </div>
           
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+          ${!this.isLoginMode ? html`
+            <!-- Username input with flex container -->
+            <div class="flex flex-col gap-1">
+              <label class="text-sm font-medium text-gray-700">Username</label>
+              <input 
+                type="text" 
+                .value=${this.username}
+                @input=${(e: Event) => this.username = (e.target as HTMLInputElement).value}
+                class="flex-1 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                required
+              >
+            </div>
+          ` : ''}
+          
+          <!-- Password input with flex container -->
+          <div class="flex flex-col gap-1">
+            <label class="text-sm font-medium text-gray-700">Password</label>
             <input 
               type="password" 
               .value=${this.password}
               @input=${(e: Event) => this.password = (e.target as HTMLInputElement).value}
-              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              class="flex-1 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
               required
-              minlength="3"
+              minlength="6"
             >
           </div>
           
-          <button 
-            type="submit" 
-            ?disabled=${this.isLoading}
-            class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-400"
-          >
-            ${this.isLoading ? 'Please wait...' : (this.isLoginMode ? 'Sign In' : 'Register')}
-          </button>
+          ${!this.isLoginMode ? html`
+            <!-- User type select with flex container -->
+            <div class="flex flex-col gap-1">
+              <label class="text-sm font-medium text-gray-700">I want to</label>
+              <select 
+                .value=${this.userType}
+                @change=${(e: Event) => this.userType = (e.target as HTMLSelectElement).value as 'buyer' | 'seller'}
+                class="flex-1 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              >
+                <option value="buyer">Buy items</option>
+                <option value="seller">Sell items</option>
+              </select>
+            </div>
+          ` : ''}
+          
+          <!-- Button with flex container -->
+          <div class="flex">
+            <button 
+              type="submit" 
+              ?disabled=${this.isLoading}
+              class="flex-1 w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+            >
+              ${this.isLoading ? 'Please wait...' : (this.isLoginMode ? 'Sign In' : 'Register')}
+            </button>
+          </div>
         </form>
         
-        <div class="mt-4 text-center">
+        <!-- Toggle button container with flex -->
+        <div class="mt-4 flex justify-center">
           <button 
             @click=${() => { this.isLoginMode = !this.isLoginMode; this.error = ''; }}
-            class="text-blue-600 hover:text-blue-700 text-sm"
+            class="text-blue-600 hover:text-blue-700 text-sm font-medium"
           >
             ${this.isLoginMode ? 'Need an account? Register' : 'Already have an account? Sign In'}
           </button>

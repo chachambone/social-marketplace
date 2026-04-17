@@ -18,7 +18,9 @@
     "resolveJsonModule": true,
     "allowJs": true,
     "isolatedModules": true,
-    "ignoreDeprecations": "6.0"
+    "allowImportingTsExtensions": false,
+    "noEmit": false,
+    "moduleDetection": "force"
   },
   "include": ["public/js/**/*.ts"],
   "exclude": ["node_modules", "src", "dist"]
