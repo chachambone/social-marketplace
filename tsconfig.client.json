@@ -4,6 +4,8 @@
     "module": "ESNext",
     "moduleResolution": "bundler",
     "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "outDir": "./public/dist",
+    "rootDir": "./public/js",
     "strict": false,
     "noImplicitAny": false,
     "strictPropertyInitialization": false,
@@ -14,9 +16,10 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
-    "allowJs": false,
-    "isolatedModules": true
+    "allowJs": true,
+    "isolatedModules": true,
+    "ignoreDeprecations": "6.0"
   },
-  "include": ["src/**/*.ts", "public/js/**/*.ts", "*.config.ts"],
-  "exclude": ["node_modules", "dist", "public/dist"]
+  "include": ["public/js/**/*.ts"],
+  "exclude": ["node_modules", "src", "dist"]
 }

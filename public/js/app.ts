@@ -3,6 +3,7 @@ import { customElement, state } from 'lit/decorators.js';
 import { AuthService } from './services/auth.js';
 import { User } from './types/index.js';
 import './components/LoginForm.js';
+import './components/ItemsGrid.js';
 
 @customElement('marketplace-app')
 export class MarketplaceApp extends LitElement {
@@ -26,27 +27,16 @@ export class MarketplaceApp extends LitElement {
 
   render() {
     if (!this.user) {
-      return html`
-        <login-form @login-success=${this.handleLoginSuccess}></login-form>
-      `;
+      return html`<login-form @login-success=${this.handleLoginSuccess}></login-form>`;
     }
 
     return html`
       <div>
-        <div class="bg-blue-100 p-4 rounded-lg mb-4 flex justify-between items-center">
-          <span>Welcome, ${this.user.name}!</span>
-          <button 
-            @click=${this.handleLogout}
-            class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
-          >
-            Logout
-          </button>
+        <div style="background: #dbeafe; padding: 1rem; border-radius: 0.5rem; margin-bottom: 1rem; display: flex; justify-content: space-between;">
+          <span>Welcome, ${this.user.name}! ✨ Ready to trade?</span>
+          <button @click=${this.handleLogout} style="background: #ef4444; color: white; padding: 0.5rem 1rem; border: none; border-radius: 0.5rem; cursor: pointer;">Logout</button>
         </div>
-        
-        <!-- Items will go here -->
-        <div class="text-center py-8">
-          <p class="text-gray-600">Marketplace items coming soon...</p>
-        </div>
+        <items-grid></items-grid>
       </div>
     `;
   }

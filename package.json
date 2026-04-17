@@ -1,23 +1,32 @@
 {
+  "name": "social-marketplace",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "build:ts:client": "tsc -p tsconfig.client.json",
+    "build:ts:server": "tsc -p tsconfig.server.json",
+    "build": "npm run build:ts:client && npm run build:ts:server",
+    "watch:ts:client": "tsc -p tsconfig.client.json --watch",
+    "watch:ts:server": "tsc -p tsconfig.server.json --watch",
+    "dev": "node --experimental-specifier-resolution=node dist/server.js",
+    "start": "node --experimental-specifier-resolution=node dist/server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.6",
+    "ejs": "^5.0.2",
+    "express": "^5.2.1",
+    "lit": "^3.3.2",
+    "uuid": "^13.0.0"
+  },
   "devDependencies": {
-    "@types/node": "^25.6.0",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/tailwindcss": "^3.0.11",
+    "@types/trusted-types": "^2.0.7",
+    "@types/uuid": "^10.0.0",
     "autoprefixer": "^10.5.0",
-    "concurrently": "^9.2.1",
     "postcss": "^8.5.10",
     "tailwindcss": "^3.4.19",
     "typescript": "^6.0.2"
-  },
-  "dependencies": {
-    "ejs": "^5.0.2",
-    "lit": "^3.3.2"
-  },
-  "scripts": {
-    "dev": "concurrently \"npm run watch:css\" \"npm run watch:ts\" \"nodemon server/index.js\"",
-    "watch:ts": "tsc --watch",
-    "watch:css": "npx tailwindcss -i ./public/css/input.css -o ./public/css/main.css --watch",
-    "build:ts": "tsc",
-    "build:css": "npx tailwindcss -i ./public/css/input.css -o ./public/css/main.css --minify",
-    "build": "npm run build:ts && npm run build:css",
-    "setup": "npm install && npm run build"
   }
 }

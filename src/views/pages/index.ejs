@@ -2,43 +2,40 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><%= title %></title>
     <meta name="description" content="<%= description %>">
     
-    <!-- Import Map for Lit CDN - This is critical! -->
+    <!-- Import map for Lit -->
     <script type="importmap">
         {
             "imports": {
                 "lit": "https://cdn.jsdelivr.net/npm/lit@3.2.1/index.js",
                 "lit/": "https://cdn.jsdelivr.net/npm/lit@3.2.1/",
-                "@lit/reactive-element": "https://cdn.jsdelivr.net/npm/@lit/reactive-element@2.0.4/reactive-element.js",
-                "@lit/reactive-element/": "https://cdn.jsdelivr.net/npm/@lit/reactive-element@2.0.4/",
-                "lit-element/lit-element.js": "https://cdn.jsdelivr.net/npm/lit-element@4.1.0/lit-element.js",
+                "lit/decorators.js": "https://cdn.jsdelivr.net/npm/lit@3.2.1/decorators.js",
                 "lit-html": "https://cdn.jsdelivr.net/npm/lit-html@3.2.0/lit-html.js",
-                "lit-html/": "https://cdn.jsdelivr.net/npm/lit-html@3.2.0/"
+                "lit-html/": "https://cdn.jsdelivr.net/npm/lit-html@3.2.0/",
+                "lit-element/lit-element.js": "https://cdn.jsdelivr.net/npm/lit-element@4.1.0/lit-element.js",
+                "@lit/reactive-element": "https://cdn.jsdelivr.net/npm/@lit/reactive-element@2.0.4/reactive-element.js",
+                "@lit/reactive-element/": "https://cdn.jsdelivr.net/npm/@lit/reactive-element@2.0.4/"
             }
         }
     </script>
     
-    <!-- OUR compiled Tailwind CSS (via PostCSS) -->
-    <link rel="stylesheet" href="/css/main.css">
+    <!-- Tailwind CSS CDN - Pure Tailwind, no custom CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- Fallback styles for no JavaScript -->
-    <noscript>
-        <style>
-            .no-js-warning {
-                padding: 1rem;
-                background: #fee2e2;
-                color: #dc2626;
-                text-align: center;
-                font-family: sans-serif;
-            }
-        </style>
-    </noscript>
+    <!-- Custom animation (still needed for spinner) -->
+    <style>
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .animate-spin {
+            animation: spin 1s linear infinite;
+        }
+    </style>
 </head>
 <body class="bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen">
-    <!-- Rest of your body remains the same -->
     <div id="app" class="flex flex-col min-h-screen">
         <header class="bg-white shadow-md sticky top-0 z-50">
             <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
@@ -70,31 +67,8 @@
             </div>
         </footer>
     </div>
-
-    <!-- Load compiled TypeScript components -->
-    <script type="module" src="/dist/app.js"></script>
     
-    <script>
-        window.addEventListener('DOMContentLoaded', () => {
-            const observer = new MutationObserver((mutations) => {
-                const app = document.querySelector('marketplace-app');
-                if (app && app.shadowRoot) {
-                    const loadingIndicator = document.getElementById('loading-indicator');
-                    if (loadingIndicator) {
-                        loadingIndicator.style.display = 'none';
-                    }
-                    observer.disconnect();
-                }
-            });
-            observer.observe(document.body, { childList: true, subtree: true });
-            
-            setTimeout(() => {
-                const loadingIndicator = document.getElementById('loading-indicator');
-                if (loadingIndicator && loadingIndicator.style.display !== 'none') {
-                    loadingIndicator.style.display = 'none';
-                }
-            }, 3000);
-        });
-    </script>
+    <!-- Load your compiled app -->
+    <script type="module" src="/dist/app.js"></script>
 </body>
 </html>
