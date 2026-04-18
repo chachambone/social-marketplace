@@ -16,6 +16,8 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+// IMPORTANT: Bind to 0.0.0.0 to accept connections from outside (Render requirement)
+const HOST = '0.0.0.0';
 
 // Middleware
 app.use(cors());
@@ -55,7 +57,9 @@ app.use(errorHandler);
 const server = createServer(app);
 setupWebSocketServer(server);
 
-server.listen(PORT, () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
+// Bind to 0.0.0.0 to ensure Render can detect the port
+//@ts-ignore
+server.listen(PORT, HOST, () => {
+  console.log(`🚀 Server running on http://${HOST}:${PORT}`);
   console.log(`🔌 WebSocket server ready for real-time chat`);
 });

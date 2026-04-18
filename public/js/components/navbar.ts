@@ -568,14 +568,14 @@ class BidNavbar extends LitElement {
   }
 
   checkLoginStatus() {
-    const token = localStorage.getItem('auth_token');
-    const user = localStorage.getItem('current_user');
+    const token = localStorage.getItem('accessToken');
+    const user = localStorage.getItem('user');
     return !!(token && user);
   }
 
   getCurrentUser() {
     try {
-      const userStr = localStorage.getItem('current_user');
+      const userStr = localStorage.getItem('user');
       if (userStr) {
         return JSON.parse(userStr);
       }
@@ -666,8 +666,8 @@ class BidNavbar extends LitElement {
   }
 
   handleLogout() {
-    localStorage.removeItem('auth_token');
-    localStorage.removeItem('current_user');
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('user');
     this.isLoggedIn = false;
     this.currentUser = null;
     this.requestUpdate();
