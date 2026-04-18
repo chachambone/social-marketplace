@@ -1,4 +1,4 @@
-import { LitElement, html } from "lit";
+import { LitElement, html, css } from "lit";
 import { unsafeHTML } from "lit/directives/unsafe-html.js";
 
 // SVG icons as raw strings
@@ -34,20 +34,508 @@ class BidNavbar extends LitElement {
   currentUser: any;
   notifications: { id: number; type: string; title: string; time: string; icon: string; read: boolean; }[];
   navItems: { path: string; label: string; icon: string; active: boolean; }[];
-  createRenderRoot() { return this }
 
-  static properties = {
-    isMenuOpen: { type: Boolean },
-    isBeeAnimating: { type: Boolean },
-    showNotifications: { type: Boolean },
-    showUserMenu: { type: Boolean },
-    isDarkMode: { type: Boolean },
-    scrolled: { type: Boolean },
-    isLoggedIn: { type: Boolean },
-    currentUser: { type: Object },
-    notifications: { type: Array },
-    navItems: { type: Array },
-  };
+  static styles = css`
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    .navbar {
+      position: fixed;
+      top: 0;
+      width: 100%;
+      z-index: 50;
+      transition: all 0.3s ease;
+      background-color: #F3A712;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+
+    .navbar.scrolled {
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    }
+
+    .nav-container {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 0 1.5rem;
+    }
+
+    @media (min-width: 640px) {
+      .nav-container {
+        padding: 0 2rem;
+      }
+    }
+
+    .nav-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 64px;
+    }
+
+    /* Logo */
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      cursor: pointer;
+    }
+
+    .bee-icon {
+      font-size: 1.75rem;
+      transition: all 0.3s ease;
+    }
+
+    .bee-icon.animate {
+      transform: scale(1.1) rotate(12deg);
+    }
+
+    .logo:hover .bee-icon {
+      transform: scale(1.1) rotate(6deg);
+    }
+
+    .logo-text {
+      font-weight: 900;
+      font-size: 1.25rem;
+      letter-spacing: -0.025em;
+      transition: opacity 0.2s;
+      color: white;
+    }
+
+    .logo-text span {
+      color: #1F2937;
+    }
+
+    @media (min-width: 640px) {
+      .logo-text {
+        font-size: 1.5rem;
+      }
+    }
+
+    /* Desktop Navigation */
+    .desktop-nav {
+      display: none;
+      align-items: center;
+      gap: 0.25rem;
+      background-color: rgba(0, 0, 0, 0.1);
+      backdrop-filter: blur(4px);
+      border-radius: 9999px;
+      padding: 0.25rem 0.5rem;
+    }
+
+    @media (min-width: 768px) {
+      .desktop-nav {
+        display: flex;
+      }
+    }
+
+    .nav-link {
+      padding: 0.5rem 1rem;
+      border-radius: 9999px;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: white;
+      text-decoration: none;
+    }
+
+    .nav-link:hover {
+      background-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .nav-link.active {
+      background-color: white;
+      color: #F3A712;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      transform: scale(1.05);
+    }
+
+    /* Right Section */
+    .right-section {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .icon-btn {
+      padding: 0.5rem;
+      border-radius: 9999px;
+      transition: all 0.2s;
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .icon-btn:hover {
+      background-color: rgba(0, 0, 0, 0.1);
+    }
+
+    .btn-primary {
+      font-size: 0.875rem;
+      font-weight: 600;
+      background-color: white;
+      color: #F3A712;
+      padding: 0.5rem 1.25rem;
+      border-radius: 9999px;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+
+    .btn-primary:hover {
+      background-color: #f9fafb;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+    }
+
+    .btn-secondary {
+      font-size: 0.875rem;
+      font-weight: 600;
+      background-color: rgba(0, 0, 0, 0.2);
+      color: white;
+      padding: 0.5rem 1.25rem;
+      border-radius: 9999px;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-secondary:hover {
+      background-color: rgba(0, 0, 0, 0.3);
+    }
+
+    /* Notification Badge */
+    .notification-badge {
+      position: absolute;
+      top: -4px;
+      right: -4px;
+      background-color: #EF4444;
+      color: white;
+      font-size: 0.7rem;
+      border-radius: 9999px;
+      width: 1.25rem;
+      height: 1.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    /* User Menu Button */
+    .user-menu-btn {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      background-color: rgba(0, 0, 0, 0.1);
+      padding: 0.5rem 0.75rem;
+      border-radius: 9999px;
+      transition: all 0.2s;
+      border: none;
+      cursor: pointer;
+      color: white;
+    }
+
+    .user-menu-btn:hover {
+      background-color: rgba(0, 0, 0, 0.2);
+    }
+
+    .user-avatar {
+      width: 2rem;
+      height: 2rem;
+      background-color: white;
+      border-radius: 9999px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #F3A712;
+      font-size: 0.875rem;
+      font-weight: bold;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      transition: transform 0.2s;
+    }
+
+    .user-menu-btn:hover .user-avatar {
+      transform: scale(1.1);
+    }
+
+    /* Dropdown Menus */
+    .dropdown {
+      position: absolute;
+      right: 0;
+      margin-top: 0.75rem;
+      width: 20rem;
+      background-color: white;
+      border-radius: 1rem;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+      overflow: hidden;
+      z-index: 50;
+      animation: slideDown 0.2s ease-out;
+    }
+
+    @media (min-width: 640px) {
+      .dropdown {
+        width: 24rem;
+      }
+    }
+
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .dropdown-header {
+      padding: 1rem;
+      background: linear-gradient(135deg, #F3A712 0%, #E8950A 100%);
+    }
+
+    .dropdown-header-content {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .dropdown-avatar {
+      width: 3rem;
+      height: 3rem;
+      background-color: white;
+      border-radius: 9999px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #F3A712;
+      font-weight: bold;
+      font-size: 1.125rem;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .dropdown-user-info {
+      flex: 1;
+    }
+
+    .dropdown-user-name {
+      font-weight: bold;
+      color: white;
+    }
+
+    .dropdown-user-email {
+      font-size: 0.75rem;
+      color: rgba(255, 255, 255, 0.8);
+    }
+
+    .role-badge {
+      display: inline-block;
+      margin-top: 0.25rem;
+      padding: 0.125rem 0.5rem;
+      border-radius: 9999px;
+      font-size: 0.7rem;
+      background-color: rgba(255, 255, 255, 0.2);
+      color: white;
+    }
+
+    .dropdown-item {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.75rem 1rem;
+      transition: background-color 0.2s;
+      cursor: pointer;
+      text-decoration: none;
+    }
+
+    .dropdown-item:hover {
+      background-color: #F9FAFB;
+    }
+
+    .dropdown-item-icon {
+      color: #6B7280;
+      transition: color 0.2s;
+    }
+
+    .dropdown-item:hover .dropdown-item-icon {
+      color: #F3A712;
+    }
+
+    .dropdown-item-text {
+      flex: 1;
+    }
+
+    .dropdown-item-title {
+      font-size: 0.875rem;
+      color: #374151;
+    }
+
+    .dropdown-item-subtitle {
+      font-size: 0.7rem;
+      color: #9CA3AF;
+    }
+
+    .dropdown-divider {
+      border-top: 1px solid #F3F4F6;
+      margin: 0.25rem 0;
+    }
+
+    .logout-item {
+      color: #DC2626;
+    }
+
+    .logout-item:hover {
+      background-color: #FEF2F2;
+    }
+
+    .logout-item:hover .dropdown-item-icon {
+      color: #DC2626;
+    }
+
+    /* Notification Item */
+    .notification-item {
+      padding: 1rem;
+      transition: background-color 0.2s;
+      cursor: pointer;
+      border-bottom: 1px solid #F3F4F6;
+    }
+
+    .notification-item.unread {
+      background-color: #FEF3C7;
+    }
+
+    .notification-item:last-child {
+      border-bottom: none;
+    }
+
+    .notification-item:hover {
+      background-color: #F9FAFB;
+    }
+
+    .notification-content {
+      display: flex;
+      gap: 0.75rem;
+    }
+
+    .notification-icon {
+      padding: 0.5rem;
+      border-radius: 9999px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .notification-icon.unread {
+      background-color: #FEF3C7;
+    }
+
+    .notification-icon.read {
+      background-color: #F3F4F6;
+    }
+
+    .notification-text {
+      flex: 1;
+    }
+
+    .notification-title {
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: #1F2937;
+    }
+
+    .notification-time {
+      font-size: 0.7rem;
+      color: #6B7280;
+      margin-top: 0.25rem;
+    }
+
+    .notification-dot {
+      width: 0.5rem;
+      height: 0.5rem;
+      background-color: #F3A712;
+      border-radius: 9999px;
+      margin-top: 0.25rem;
+    }
+
+    /* Mobile Menu */
+    .mobile-menu {
+      display: block;
+      padding: 1rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.2);
+      animation: slideDown 0.2s ease-out;
+      background-color: #F3A712;
+    }
+
+    @media (min-width: 768px) {
+      .mobile-menu {
+        display: none;
+      }
+    }
+
+    .mobile-nav-link {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.75rem 1rem;
+      border-radius: 0.75rem;
+      transition: background-color 0.2s;
+      color: white;
+      text-decoration: none;
+    }
+
+    .mobile-nav-link.active {
+      background-color: rgba(255, 255, 255, 0.2);
+      font-weight: 600;
+    }
+
+    .mobile-nav-link:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .mobile-divider {
+      border-top: 1px solid rgba(255, 255, 255, 0.2);
+      margin: 0.5rem 0;
+    }
+
+    .spacer {
+      height: 64px;
+    }
+
+    .relative {
+      position: relative;
+    }
+
+    .hidden-sm {
+      display: none;
+    }
+
+    @media (min-width: 640px) {
+      .hidden-sm {
+        display: inline;
+      }
+    }
+
+    .hidden-md {
+      display: block;
+    }
+
+    @media (min-width: 768px) {
+      .hidden-md {
+        display: none;
+      }
+    }
+  `;
 
   constructor() {
     super();
@@ -56,13 +544,11 @@ class BidNavbar extends LitElement {
     this.showNotifications = false;
     this.showUserMenu = false;
     
-    // Check saved dark mode preference
     const savedDarkMode = localStorage.getItem('bidnest_darkMode');
     this.isDarkMode = savedDarkMode === 'true';
     this.scrolled = false;
     this.beeTimeout = null;
     
-    // Get auth state from localStorage or window
     this.isLoggedIn = this.checkLoginStatus();
     this.currentUser = this.getCurrentUser();
 
@@ -82,7 +568,6 @@ class BidNavbar extends LitElement {
   }
 
   checkLoginStatus() {
-    // Check if user is logged in via localStorage or global auth service
     const token = localStorage.getItem('auth_token');
     const user = localStorage.getItem('current_user');
     return !!(token && user);
@@ -97,7 +582,7 @@ class BidNavbar extends LitElement {
     } catch (e) {
       console.error('Error parsing user data', e);
     }
-    return { name: 'Guest', role: 'buyer' };
+    return { name: 'Guest', role: 'buyer', email: 'guest@example.com' };
   }
 
   icon(svg, size = 18, className = "") {
@@ -111,7 +596,6 @@ class BidNavbar extends LitElement {
     this.updateActiveTab();
     this.initDarkMode();
     
-    // Listen for auth changes
     window.addEventListener('auth-changed', () => {
       this.isLoggedIn = this.checkLoginStatus();
       this.currentUser = this.getCurrentUser();
@@ -173,6 +657,7 @@ class BidNavbar extends LitElement {
     if (this.isBeeAnimating) return;
     this.isBeeAnimating = true;
     if (this.beeTimeout) clearTimeout(this.beeTimeout);
+    //@ts-ignore
     this.beeTimeout = setTimeout(() => { 
       this.isBeeAnimating = false; 
       this.requestUpdate();
@@ -181,20 +666,15 @@ class BidNavbar extends LitElement {
   }
 
   handleLogout() {
-    // Clear auth data
     localStorage.removeItem('auth_token');
     localStorage.removeItem('current_user');
     this.isLoggedIn = false;
     this.currentUser = null;
     this.requestUpdate();
     
-    // Dispatch event for other components
     window.dispatchEvent(new CustomEvent('auth-changed', { detail: { isLoggedIn: false } }));
-    
-    // Also dispatch to parent marketplace-app
     this.dispatchEvent(new CustomEvent('logout', { bubbles: true, composed: true }));
     
-    // Redirect to home
     window.location.href = '/';
   }
 
@@ -213,14 +693,12 @@ class BidNavbar extends LitElement {
     
     this.requestUpdate();
     
-    // Dispatch event so parent marketplace-app can sync
     this.dispatchEvent(new CustomEvent('toggle-theme', { 
       bubbles: true, 
       composed: true,
       detail: { isDarkMode: this.isDarkMode }
     }));
     
-    // Dispatch global event for other components
     window.dispatchEvent(new CustomEvent('darkmode-changed', { 
       detail: { isDarkMode: this.isDarkMode } 
     }));
@@ -228,12 +706,12 @@ class BidNavbar extends LitElement {
 
   renderLogo() {
     return html`
-      <div class="flex items-center gap-2 cursor-pointer" @click=${() => { this.animateBee(); window.location.href = '/'; }}>
-        <div class="text-3xl transition-all duration-300 ${this.isBeeAnimating ? 'scale-110 rotate-12' : 'hover:scale-110 hover:rotate-6'}">
+      <div class="logo" @click=${() => { this.animateBee(); window.location.href = '/'; }}>
+        <div class="bee-icon ${this.isBeeAnimating ? 'animate' : ''}">
           🐝
         </div>
-        <span class="font-black text-2xl tracking-tight hover:opacity-90 transition text-white">
-          Bid<span class="text-gray-900">Nest</span>
+        <span class="logo-text">
+          Bid<span>Nest</span>
         </span>
       </div>
     `;
@@ -242,87 +720,75 @@ class BidNavbar extends LitElement {
   render() {
     const unreadCount = this.notifications.filter(n => !n.read).length;
     const userName = this.currentUser?.name || 'Guest';
+    const userEmail = this.currentUser?.email || 'guest@example.com';
     const userRole = this.currentUser?.role || 'buyer';
 
     return html`
-      <!-- STICKY SHADOW NAVBAR - now all sticky/shadow classes are here -->
-      <nav class="fixed top-0 w-full z-50 transition-all duration-300 shadow-md ${this.scrolled ? 'shadow-xl' : ''}" style="background-color: #F3A712;">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div class="flex items-center justify-between h-16">
+      <nav class="navbar ${this.scrolled ? 'scrolled' : ''}">
+        <div class="nav-container">
+          <div class="nav-inner">
 
-            <!-- Logo Section -->
+            <!-- Logo -->
             ${this.renderLogo()}
 
             <!-- Desktop Navigation -->
-            <div class="hidden md:flex items-center gap-1 bg-white/20 backdrop-blur-sm rounded-full px-2 py-1">
+            <div class="desktop-nav">
               ${this.navItems.map(item => html`
-                <a href=${item.path}
-                  class="px-4 py-2 rounded-full transition-all duration-300 flex items-center gap-2 text-sm font-medium ${item.active ? 'bg-white text-[#F3A712] shadow-lg scale-105' : 'text-white hover:bg-white/20'}">
+                <a href=${item.path} class="nav-link ${item.active ? 'active' : ''}">
                   ${this.icon(item.icon, 16)} ${item.label}
                 </a>
               `)}
             </div>
 
             <!-- Right Section -->
-            <div class="flex items-center gap-2">
-
+            <div class="right-section">
               <!-- Dark Mode Toggle -->
-              <button @click=${this.toggleDarkMode}
-                class="p-2 rounded-full hover:bg-white/20 transition text-white" 
-                aria-label="Toggle dark mode">
+              <button class="icon-btn" @click=${this.toggleDarkMode} aria-label="Toggle dark mode">
                 ${this.isDarkMode ? this.icon(sunIcon, 18) : this.icon(moonIcon, 18)}
               </button>
 
-              <!-- NOT LOGGED IN: Show Sign In + Register -->
+              <!-- NOT LOGGED IN -->
               ${!this.isLoggedIn ? html`
-                <a href="/login"
-                  class="text-sm font-semibold text-[#F3A712] bg-white px-4 py-2 rounded-full hover:bg-white/90 transition hidden sm:block">
-                  Sign In
-                </a>
-                <a href="/register"
-                  class="text-sm font-semibold text-white bg-white/20 px-4 py-2 rounded-full hover:bg-white/30 transition hidden sm:block">
-                  Register
-                </a>
+                <a href="/login" class="btn-primary">Sign In</a>
+                <a href="/register" class="btn-secondary hidden-sm">Register</a>
               ` : html`
-
                 <!-- LOGGED IN: Notifications -->
                 <div class="relative notifications-menu">
-                  <button @click=${() => { this.showNotifications = !this.showNotifications; this.showUserMenu = false; this.requestUpdate(); }}
-                    class="relative p-2 rounded-full hover:bg-white/20 transition text-white" aria-label="Notifications">
+                  <button class="icon-btn" @click=${() => { this.showNotifications = !this.showNotifications; this.showUserMenu = false; this.requestUpdate(); }} aria-label="Notifications">
                     ${this.icon(bellIcon, 20)}
                     ${unreadCount > 0 ? html`
-                      <span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center animate-pulse">
+                      <span class="notification-badge">
                         ${unreadCount}
                       </span>
                     ` : ''}
                   </button>
 
                   ${this.showNotifications ? html`
-                    <div class="absolute right-0 mt-3 w-96 bg-white rounded-2xl shadow-2xl overflow-hidden z-50 animate-slideDown">
-                      <div class="p-4 bg-[#FEF3C7] border-b">
-                        <div class="flex justify-between items-center">
-                          <h3 class="font-bold text-gray-900">Notifications</h3>
-                          <button class="text-xs text-[#F3A712] hover:text-[#F97316]">Mark all read</button>
+                    <div class="dropdown">
+                      <div class="dropdown-header" style="background: linear-gradient(135deg, #F3A712, #E8950A);">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                          <h3 style="font-weight: bold; color: white;">Notifications</h3>
+                          <button style="font-size: 0.7rem; color: rgba(255,255,255,0.8); background: none; border: none; cursor: pointer;">Mark all read</button>
                         </div>
                       </div>
-                      <div class="max-h-96 overflow-y-auto">
+                      <div style="max-height: 24rem; overflow-y: auto;">
                         ${this.notifications.map(notif => html`
-                          <div class="p-4 hover:bg-gray-50 cursor-pointer transition border-b last:border-0 ${!notif.read ? 'bg-[#FEF3C7]/50' : ''}">
-                            <div class="flex gap-3">
-                              <div class="p-2 rounded-full ${!notif.read ? 'bg-[#FEF3C7]' : 'bg-gray-100'}">
+                          <div class="notification-item ${!notif.read ? 'unread' : ''}">
+                            <div class="notification-content">
+                              <div class="notification-icon ${!notif.read ? 'unread' : 'read'}">
                                 ${this.icon(notif.icon, 14)}
                               </div>
-                              <div class="flex-1">
-                                <p class="text-sm font-medium text-gray-900">${notif.title}</p>
-                                <p class="text-xs text-gray-500 mt-1">${notif.time}</p>
+                              <div class="notification-text">
+                                <p class="notification-title">${notif.title}</p>
+                                <p class="notification-time">${notif.time}</p>
                               </div>
-                              ${!notif.read ? html`<div class="w-2 h-2 bg-[#F3A712] rounded-full mt-1"></div>` : ''}
+                              ${!notif.read ? html`<div class="notification-dot"></div>` : ''}
                             </div>
                           </div>
                         `)}
                       </div>
-                      <div class="p-3 bg-gray-50 border-t text-center">
-                        <button class="text-sm text-[#F3A712] hover:text-[#F97316] font-medium">View all notifications</button>
+                      <div style="padding: 0.75rem; background-color: #F9FAFB; border-top: 1px solid #F3F4F6; text-align: center;">
+                        <button style="font-size: 0.875rem; color: #F3A712; font-weight: 500; background: none; border: none; cursor: pointer;">View all notifications</button>
                       </div>
                     </div>
                   ` : ''}
@@ -330,99 +796,93 @@ class BidNavbar extends LitElement {
 
                 <!-- LOGGED IN: User Menu -->
                 <div class="relative user-menu">
-                  <button @click=${() => { this.showUserMenu = !this.showUserMenu; this.showNotifications = false; this.requestUpdate(); }}
-                    class="flex items-center gap-2 bg-white/20 hover:bg-white/30 px-3 py-2 rounded-full transition group text-white"
-                    aria-label="User menu">
-                    <div class="w-8 h-8 bg-white rounded-full flex items-center justify-center text-[#F3A712] text-sm font-bold shadow-md group-hover:scale-110 transition">
+                  <button class="user-menu-btn" @click=${() => { this.showUserMenu = !this.showUserMenu; this.showNotifications = false; this.requestUpdate(); }} aria-label="User menu">
+                    <div class="user-avatar">
                       ${userName[0]?.toUpperCase()}
                     </div>
-                    <span class="text-sm font-medium hidden sm:inline">${userName}</span>
-                    ${this.icon(chevronDownIcon, 14, "hidden sm:block")}
+                    <span class="hidden-sm">${userName}</span>
+                    ${this.icon(chevronDownIcon, 14, "hidden-sm")}
                   </button>
 
                   ${this.showUserMenu ? html`
-                    <div class="absolute right-0 mt-3 w-72 bg-white rounded-2xl shadow-2xl overflow-hidden z-50 animate-slideDown">
-                      <div class="p-4 bg-[#FEF3C7]">
-                        <div class="flex items-center gap-3">
-                          <div class="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-md" style="background-color:#F3A712">
+                    <div class="dropdown">
+                      <div class="dropdown-header">
+                        <div class="dropdown-header-content">
+                          <div class="dropdown-avatar">
                             ${userName[0]?.toUpperCase()}
                           </div>
-                          <div class="flex-1">
-                            <p class="font-bold text-gray-900">${userName}</p>
-                            <span class="text-xs capitalize px-2 py-0.5 rounded-full font-medium ${userRole === 'seller' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'}">
-                              ${userRole}
+                          <div class="dropdown-user-info">
+                            <p class="dropdown-user-name">${userName}</p>
+                            <p class="dropdown-user-email">${userEmail}</p>
+                            <span class="role-badge">
+                              ${userRole === 'seller' ? 'Seller Account' : 'Buyer Account'}
                             </span>
-                          </div>
-                          <div class="flex gap-1 items-center">
-                            ${this.icon(starIcon, 14, "fill-[#F3A712] text-[#F3A712]")}
-                            <span class="text-xs font-semibold">4.9</span>
                           </div>
                         </div>
                       </div>
 
-                      <div class="py-2">
-                        <a href="/profile" class="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition group">
-                          ${this.icon(userIcon, 18, "text-gray-500 group-hover:text-[#F3A712]")}
-                          <div class="flex-1">
-                            <span class="text-sm text-gray-700 group-hover:text-gray-900">My Profile</span>
-                            <p class="text-xs text-gray-400">View and edit your profile</p>
+                      <div style="padding: 0.5rem 0;">
+                        <a href="/profile" class="dropdown-item">
+                          ${this.icon(userIcon, 18, "dropdown-item-icon")}
+                          <div class="dropdown-item-text">
+                            <div class="dropdown-item-title">My Profile</div>
+                            <div class="dropdown-item-subtitle">View and edit your profile</div>
                           </div>
                         </a>
                         ${userRole === 'seller' ? html`
-                          <a href="/sell" class="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition group">
-                            ${this.icon(tagIcon, 18, "text-gray-500 group-hover:text-[#F3A712]")}
-                            <div class="flex-1">
-                              <span class="text-sm text-gray-700 group-hover:text-gray-900">List an Item</span>
-                              <p class="text-xs text-gray-400">Create a new listing</p>
+                          <a href="/sell" class="dropdown-item">
+                            ${this.icon(tagIcon, 18, "dropdown-item-icon")}
+                            <div class="dropdown-item-text">
+                              <div class="dropdown-item-title">List an Item</div>
+                              <div class="dropdown-item-subtitle">Create a new listing</div>
                             </div>
                           </a>
                         ` : ''}
-                        <a href="/my-listings" class="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition group">
-                          ${this.icon(shoppingBagIcon, 18, "text-gray-500 group-hover:text-[#F3A712]")}
-                          <div class="flex-1">
-                            <span class="text-sm text-gray-700 group-hover:text-gray-900">My Listings</span>
-                            <p class="text-xs text-gray-400">Manage your items</p>
+                        <a href="/my-listings" class="dropdown-item">
+                          ${this.icon(shoppingBagIcon, 18, "dropdown-item-icon")}
+                          <div class="dropdown-item-text">
+                            <div class="dropdown-item-title">My Listings</div>
+                            <div class="dropdown-item-subtitle">Manage your items</div>
                           </div>
                         </a>
-                        <a href="/favorites" class="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition group">
-                          ${this.icon(heartIcon, 18, "text-gray-500 group-hover:text-red-500")}
-                          <div class="flex-1">
-                            <span class="text-sm text-gray-700 group-hover:text-gray-900">Favorites</span>
-                            <p class="text-xs text-gray-400">Saved items</p>
+                        <a href="/favorites" class="dropdown-item">
+                          ${this.icon(heartIcon, 18, "dropdown-item-icon")}
+                          <div class="dropdown-item-text">
+                            <div class="dropdown-item-title">Favorites</div>
+                            <div class="dropdown-item-subtitle">Saved items</div>
                           </div>
                         </a>
-                        <a href="/wallet" class="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition group">
-                          ${this.icon(walletIcon, 18, "text-gray-500 group-hover:text-green-600")}
-                          <div class="flex-1">
-                            <span class="text-sm text-gray-700 group-hover:text-gray-900">Wallet</span>
-                            <p class="text-xs text-gray-400">KSh 0.00</p>
+                        <a href="/wallet" class="dropdown-item">
+                          ${this.icon(walletIcon, 18, "dropdown-item-icon")}
+                          <div class="dropdown-item-text">
+                            <div class="dropdown-item-title">Wallet</div>
+                            <div class="dropdown-item-subtitle">KSh 0.00</div>
                           </div>
                         </a>
-                        <a href="/settings" class="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition group">
-                          ${this.icon(settingsIcon, 18, "text-gray-500 group-hover:text-gray-700")}
-                          <div class="flex-1">
-                            <span class="text-sm text-gray-700 group-hover:text-gray-900">Settings</span>
-                            <p class="text-xs text-gray-400">Preferences and privacy</p>
+                        <a href="/settings" class="dropdown-item">
+                          ${this.icon(settingsIcon, 18, "dropdown-item-icon")}
+                          <div class="dropdown-item-text">
+                            <div class="dropdown-item-title">Settings</div>
+                            <div class="dropdown-item-subtitle">Preferences and privacy</div>
                           </div>
                         </a>
-                        <a href="/help" class="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition group">
-                          ${this.icon(helpCircleIcon, 18, "text-gray-500 group-hover:text-blue-600")}
-                          <div class="flex-1">
-                            <span class="text-sm text-gray-700 group-hover:text-gray-900">Help & Support</span>
-                            <p class="text-xs text-gray-400">Get assistance</p>
+                        <a href="/help" class="dropdown-item">
+                          ${this.icon(helpCircleIcon, 18, "dropdown-item-icon")}
+                          <div class="dropdown-item-text">
+                            <div class="dropdown-item-title">Help & Support</div>
+                            <div class="dropdown-item-subtitle">Get assistance</div>
                           </div>
                         </a>
                       </div>
 
-                      <div class="border-t my-1"></div>
+                      <div class="dropdown-divider"></div>
 
-                      <div class="py-2">
-                        <button @click=${this.handleLogout}
-                          class="flex items-center gap-3 px-4 py-3 hover:bg-red-50 transition w-full text-left group">
-                          ${this.icon(logOutIcon, 18, "text-red-500 group-hover:text-red-600")}
-                          <div class="flex-1">
-                            <span class="text-sm text-red-600 group-hover:text-red-700">Logout</span>
-                            <p class="text-xs text-gray-400">Sign out of your account</p>
+                      <div style="padding: 0.5rem 0;">
+                        <button class="dropdown-item logout-item" @click=${this.handleLogout}>
+                          ${this.icon(logOutIcon, 18, "dropdown-item-icon")}
+                          <div class="dropdown-item-text">
+                            <div class="dropdown-item-title" style="color: #DC2626;">Logout</div>
+                            <div class="dropdown-item-subtitle">Sign out of your account</div>
                           </div>
                         </button>
                       </div>
@@ -432,9 +892,8 @@ class BidNavbar extends LitElement {
               `}
 
               <!-- Mobile menu button -->
-              <div class="md:hidden">
-                <button @click=${() => { this.isMenuOpen = !this.isMenuOpen; this.requestUpdate(); }}
-                  class="p-2 rounded-lg hover:bg-white/20 transition text-white" aria-label="Toggle menu">
+              <div class="hidden-md">
+                <button class="icon-btn" @click=${() => { this.isMenuOpen = !this.isMenuOpen; this.requestUpdate(); }} aria-label="Toggle menu">
                   ${this.isMenuOpen ? this.icon(xIcon, 24) : this.icon(menuIcon, 24)}
                 </button>
               </div>
@@ -444,43 +903,37 @@ class BidNavbar extends LitElement {
 
         <!-- Mobile Navigation -->
         ${this.isMenuOpen ? html`
-          <div class="md:hidden py-4 border-t border-white/20 animate-slideDown bg-[#F3A712]">
-            <div class="flex flex-col gap-2 px-4">
-              ${this.navItems.map(item => html`
-                <a href=${item.path}
-                  class="px-4 py-3 rounded-xl transition flex items-center gap-3 text-white ${item.active ? 'bg-white/20 font-semibold' : 'hover:bg-white/10'}"
-                  @click=${() => { this.isMenuOpen = false; this.requestUpdate(); }}>
-                  ${this.icon(item.icon, 18)} ${item.label}
-                </a>
-              `)}
-              <div class="border-t border-white/20 my-2"></div>
-              ${!this.isLoggedIn ? html`
-                <a href="/login" class="px-4 py-3 rounded-xl bg-white text-[#F3A712] font-semibold text-center">Sign In</a>
-                <a href="/register" class="px-4 py-3 rounded-xl bg-white/20 text-white font-semibold text-center">Register</a>
-              ` : html`
-                <a href="/profile" class="px-4 py-3 rounded-xl hover:bg-white/10 transition flex items-center gap-3 text-white">
-                  ${this.icon(userIcon, 18)} My Profile
-                </a>
-                <a href="/my-listings" class="px-4 py-3 rounded-xl hover:bg-white/10 transition flex items-center gap-3 text-white">
-                  ${this.icon(shoppingBagIcon, 18)} My Listings
-                </a>
-                <button @click=${this.handleLogout}
-                  class="px-4 py-3 text-left rounded-xl hover:bg-white/10 transition flex items-center gap-3 text-red-100">
-                  ${this.icon(logOutIcon, 18)} Logout
-                </button>
-              `}
-            </div>
+          <div class="mobile-menu">
+            ${this.navItems.map(item => html`
+              <a href=${item.path} class="mobile-nav-link ${item.active ? 'active' : ''}" @click=${() => { this.isMenuOpen = false; this.requestUpdate(); }}>
+                ${this.icon(item.icon, 18)} ${item.label}
+              </a>
+            `)}
+            <div class="mobile-divider"></div>
+            ${!this.isLoggedIn ? html`
+              <a href="/login" class="mobile-nav-link" style="background-color: white; color: #F3A712; font-weight: 600; justify-content: center;">Sign In</a>
+              <a href="/register" class="mobile-nav-link" style="background-color: rgba(0,0,0,0.2); justify-content: center;">Register</a>
+            ` : html`
+              <a href="/profile" class="mobile-nav-link">
+                ${this.icon(userIcon, 18)} My Profile
+              </a>
+              <a href="/my-listings" class="mobile-nav-link">
+                ${this.icon(shoppingBagIcon, 18)} My Listings
+              </a>
+              <button class="mobile-nav-link" @click=${this.handleLogout} style="width: 100%; text-align: left;">
+                ${this.icon(logOutIcon, 18)} Logout
+              </button>
+            `}
           </div>
         ` : ''}
       </nav>
 
-      <!-- Spacer to prevent content from hiding under fixed navbar -->
-      <div class="h-16"></div>
+      <!-- Spacer -->
+      <div class="spacer"></div>
     `;
   }
 }
 
-// Register the component
 if (!customElements.get("bid-navbar")) {
   customElements.define("bid-navbar", BidNavbar);
 }

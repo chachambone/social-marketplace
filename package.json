@@ -15,6 +15,7 @@
     "start": "node --experimental-specifier-resolution=node dist/server.js"
   },
   "dependencies": {
+    "@reduxjs/toolkit": "^2.11.2",
     "@tailwindcss/postcss": "^4.2.2",
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.6",
@@ -23,6 +24,7 @@
     "jsonwebtoken": "^9.0.3",
     "lit": "^3.3.2",
     "nodemailer": "^8.0.5",
+    "react-redux": "^9.2.0",
     "uuid": "^13.0.0",
     "ws": "^8.20.0"
   },

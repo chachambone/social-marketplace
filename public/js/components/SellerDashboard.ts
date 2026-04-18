@@ -1,4 +1,4 @@
-import { LitElement, html, unsafeCSS } from 'lit';
+import { LitElement, css, html, unsafeCSS } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { AuthService } from '../services/auth.js';
 import { Item } from '../types/index.js';
@@ -6,7 +6,32 @@ import { tailwindCSS } from '../styles.js';
 
 @customElement('seller-dashboard')
 export class SellerDashboard extends LitElement {
-  static styles = unsafeCSS(tailwindCSS);
+  static styles = [unsafeCSS(tailwindCSS),css`
+    
+    .card {
+  background-color: var(--surface);
+  color: var(--on-surface);
+}
+
+/* For cards with elevation */
+.card-elevated {
+  background-color: var(--surface);
+  color: var(--on-surface);
+  box-shadow: var(--elevation-1); /* or elevation shadow */
+}
+
+/* Card variants */
+.card-outlined {
+  background-color: var(--surface);
+  color: var(--on-surface);
+  border: 1px solid var(--outline);
+}
+
+.card-tonal {
+  background-color: var(--surface-variant);
+  color: var(--on-surface-variant);
+}
+  `];
 
   @property({ type: String }) sellerId = '';
   @property({ type: String }) sellerName = '';
@@ -99,9 +124,9 @@ export class SellerDashboard extends LitElement {
   render() {
     return html`
       <div class="space-y-6">
-        <!-- Stats Grid -->
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div class="bg-white rounded-lg shadow p-6">
+        <!-- Stats Grid - using flex for stats -->
+        <div class="flex flex-wrap gap-4">
+          <div class="flex-1 min-w-[200px] bg-white rounded-lg shadow p-6">
             <div class="flex items-center justify-between">
               <div>
                 <p class="text-gray-500 text-sm">Total Items</p>
@@ -111,7 +136,7 @@ export class SellerDashboard extends LitElement {
             </div>
           </div>
           
-          <div class="bg-white rounded-lg shadow p-6">
+          <div class="flex-1 min-w-[200px] bg-white rounded-lg shadow p-6">
             <div class="flex items-center justify-between">
               <div>
                 <p class="text-gray-500 text-sm">Total Bids</p>
@@ -121,7 +146,7 @@ export class SellerDashboard extends LitElement {
             </div>
           </div>
           
-          <div class="bg-white rounded-lg shadow p-6">
+          <div class="flex-1 min-w-[200px] bg-white rounded-lg shadow p-6">
             <div class="flex items-center justify-between">
               <div>
                 <p class="text-gray-500 text-sm">Active Chats</p>
@@ -131,7 +156,7 @@ export class SellerDashboard extends LitElement {
             </div>
           </div>
           
-          <div class="bg-white rounded-lg shadow p-6">
+          <div class="flex-1 min-w-[200px] bg-white rounded-lg shadow p-6">
             <div class="flex items-center justify-between">
               <div>
                 <p class="text-gray-500 text-sm">Pending Sales</p>
@@ -179,8 +204,8 @@ export class SellerDashboard extends LitElement {
                 ></textarea>
               </div>
               
-              <div class="grid grid-cols-2 gap-4">
-                <div>
+              <div class="flex flex-wrap gap-4">
+                <div class="flex-1 min-w-[150px]">
                   <label class="block text-sm font-medium text-gray-700 mb-1">Price (KSh)</label>
                   <input 
                     type="number" 
@@ -190,7 +215,7 @@ export class SellerDashboard extends LitElement {
                     class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                   >
                 </div>
-                <div>
+                <div class="flex-1 min-w-[200px]">
                   <label class="block text-sm font-medium text-gray-700 mb-1">Image URL</label>
                   <input 
                     type="url" 
@@ -212,17 +237,18 @@ export class SellerDashboard extends LitElement {
           </div>
         ` : ''}
 
-        <!-- My Items Grid -->
+        <!-- My Items - Using Tailwind Flex Layout instead of Grid -->
         ${this.loading ? html`
           <div class="text-center py-12">
             <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
           </div>
         ` : html`
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <!-- Flex container with wrapping - responsive item cards -->
+          <div class="flex flex-wrap gap-6">
             ${this.myItems.map(item => html`
-              <div class="bg-white rounded-lg shadow overflow-hidden">
-                <img src="${item.image}" alt="${item.name}" class="w-full h-40 object-cover">
-                <div class="p-4">
+              <div class="flex flex-col w-full sm:w-[calc(50%-0.75rem)] lg:w-[calc(33.333%-1rem)] xl:w-[calc(25%-1.125rem)] bg-white rounded-lg shadow overflow-hidden">
+                <img src="${item.image}" alt="${item.name}" class="w-full h-48 object-cover">
+                <div class="flex flex-col p-4 flex-1">
                   <h3 class="font-semibold text-gray-800 mb-1">${item.name}</h3>
                   <p class="text-sm text-gray-600 mb-2 line-clamp-2">${item.description}</p>
                   <div class="flex justify-between items-center mb-3">
@@ -236,7 +262,7 @@ export class SellerDashboard extends LitElement {
                       Highest bid: KSh ${item.highestOffer.toLocaleString()}
                     </div>
                   ` : ''}
-                  <div class="flex gap-2">
+                  <div class="flex gap-2 mt-auto">
                     <button 
                       @click=${() => alert('Chat with bidders coming soon!')}
                       class="flex-1 bg-blue-600 text-white py-1 rounded-lg hover:bg-blue-700 text-sm"
@@ -256,7 +282,7 @@ export class SellerDashboard extends LitElement {
           </div>
           
           ${this.myItems.length === 0 ? html`
-            <div class="text-center py-12 bg-white rounded-lg">
+            <div class="flex flex-col items-center justify-center text-center py-12 bg-white rounded-lg">
               <div class="text-4xl mb-2">📦</div>
               <p class="text-gray-500">No items listed yet</p>
               <p class="text-sm text-gray-400 mt-1">Click "Add New Item" to start selling</p>

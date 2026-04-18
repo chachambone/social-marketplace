@@ -4,9 +4,9 @@ import { AuthService } from './services/auth.js';
 import { User } from './types/index.js';
 import './components/LoginForm.js';
 import './components/navbar.js';
-
 import './components/ItemsGrid.js';
 import './components/SellerDashboard.js';
+
 import { tailwindCSS } from './styles.js';
 import { lightThemeColors, darkThemeColors } from './colors.js';
 
@@ -17,6 +17,8 @@ export class MarketplaceApp extends LitElement {
   @state() private user: User | null = null;
   @state() private activeView: 'buyer' | 'seller' = 'buyer';
   @state() private isDarkMode: boolean = false;
+  @state() private isCartOpen: boolean = false;
+  @state() private isCheckoutOpen: boolean = false;
 
   constructor() {
     super();
@@ -25,27 +27,23 @@ export class MarketplaceApp extends LitElement {
       this.activeView = this.user.userType === 'seller' ? 'seller' : 'buyer';
     }
     this.initTheme();
+
   }
 
   private initTheme() {
-    // Check localStorage for theme preference
     const savedTheme = localStorage.getItem('theme');
-    
-    this.isDarkMode = savedTheme === 'dark'
-    console.log("Saved theme is ", savedTheme, " so isDarkMode is ", this.isDarkMode);
+    this.isDarkMode = savedTheme === 'dark';
     this.applyTheme();
   }
 
   private applyTheme() {
     const colors = this.isDarkMode ? darkThemeColors : lightThemeColors;
     const root = document.documentElement;
-    console.log("colors is ",colors)
-    // Set CSS variables for all theme colors
+    
     Object.entries(colors).forEach(([key, value]) => {
       root.style.setProperty(`--${this.camelToKebab(key)}`, value);
     });
     
-    // Also set a data attribute for body class
     document.body.setAttribute('data-theme', this.isDarkMode ? 'dark' : 'light');
   }
 
@@ -77,6 +75,24 @@ export class MarketplaceApp extends LitElement {
     this.requestUpdate();
   }
 
+  private toggleCart() {
+    this.isCartOpen = !this.isCartOpen;
+    if (this.isCartOpen) {
+      this.isCheckoutOpen = false;
+    }
+  }
+
+  private handleCheckout() {
+    this.isCartOpen = false;
+    this.isCheckoutOpen = true;
+  }
+
+  private handleOrderSuccess() {
+    this.isCheckoutOpen = false;
+    // Show success notification (you can implement a toast notification)
+    alert('Order placed successfully!');
+  }
+
   render() {
     if (!this.user) {
       return html`
@@ -86,13 +102,17 @@ export class MarketplaceApp extends LitElement {
       `;
     }
 
-    // Seller View - removed sticky/shadow classes from inner nav, now using bid-navbar only
+    // Seller View
     if (this.user.userType === 'seller') {
       return html`
-        <bid-navbar .isDarkMode=${this.isDarkMode} @toggle-theme=${this.toggleTheme} @logout=${this.handleLogout}></bid-navbar>
+        <bid-navbar 
+          .isDarkMode=${this.isDarkMode} 
+          @toggle-theme=${this.toggleTheme} 
+          @logout=${this.handleLogout}
+          @cart-click=${this.toggleCart}
+        ></bid-navbar>
 
         <div class="min-h-screen" style="background-color: var(--background); color: var(--on-background);">
-          <!-- Seller Navigation - REMOVED sticky shadow classes, now delegated to bid-navbar -->
           <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <div class="flex justify-between items-center mb-6">
               <div class="flex space-x-2">
@@ -113,25 +133,35 @@ export class MarketplaceApp extends LitElement {
               </div>
             </div>
 
-            <!-- Content based on active view -->
             ${this.activeView === 'seller' 
               ? html`<seller-dashboard .sellerId=${this.user.id} .sellerName=${this.user.username}></seller-dashboard>`
               : html`<items-grid></items-grid>`
             }
           </div>
         </div>
+        
+        <cart-drawer .open=${this.isCartOpen} @close=${this.toggleCart} @checkout=${this.handleCheckout}></cart-drawer>
+        <checkout-form .open=${this.isCheckoutOpen} @close=${() => this.isCheckoutOpen = false} @order-success=${this.handleOrderSuccess}></checkout-form>
       `;
     }
 
-    // Buyer View - removed sticky/shadow classes from inner nav
+    // Buyer View
     return html`
-      <bid-navbar .isDarkMode=${this.isDarkMode} @toggle-theme=${this.toggleTheme} @logout=${this.handleLogout}></bid-navbar>
+      <bid-navbar 
+        .isDarkMode=${this.isDarkMode} 
+        @toggle-theme=${this.toggleTheme} 
+        @logout=${this.handleLogout}
+        @cart-click=${this.toggleCart}
+      ></bid-navbar>
 
       <div class="min-h-screen" style="background-color: var(--background); color: var(--on-background);">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <items-grid></items-grid>
         </div>
       </div>
+      
+      <cart-drawer .open=${this.isCartOpen} @close=${this.toggleCart} @checkout=${this.handleCheckout}></cart-drawer>
+      <checkout-form .open=${this.isCheckoutOpen} @close=${() => this.isCheckoutOpen = false} @order-success=${this.handleOrderSuccess}></checkout-form>
     `;
   }
 }

@@ -19,6 +19,8 @@ let MarketplaceApp = class MarketplaceApp extends LitElement {
         this.user = null;
         this.activeView = 'buyer';
         this.isDarkMode = false;
+        this.isCartOpen = false;
+        this.isCheckoutOpen = false;
         this.user = AuthService.getCurrentUser();
         if (this.user) {
             this.activeView = this.user.userType === 'seller' ? 'seller' : 'buyer';
@@ -26,21 +28,16 @@ let MarketplaceApp = class MarketplaceApp extends LitElement {
         this.initTheme();
     }
     initTheme() {
-        // Check localStorage for theme preference
         const savedTheme = localStorage.getItem('theme');
         this.isDarkMode = savedTheme === 'dark';
-        console.log("Saved theme is ", savedTheme, " so isDarkMode is ", this.isDarkMode);
         this.applyTheme();
     }
     applyTheme() {
         const colors = this.isDarkMode ? darkThemeColors : lightThemeColors;
         const root = document.documentElement;
-        console.log("colors is ", colors);
-        // Set CSS variables for all theme colors
         Object.entries(colors).forEach(([key, value]) => {
             root.style.setProperty(`--${this.camelToKebab(key)}`, value);
         });
-        // Also set a data attribute for body class
         document.body.setAttribute('data-theme', this.isDarkMode ? 'dark' : 'light');
     }
     camelToKebab(str) {
@@ -66,6 +63,21 @@ let MarketplaceApp = class MarketplaceApp extends LitElement {
         this.activeView = view;
         this.requestUpdate();
     }
+    toggleCart() {
+        this.isCartOpen = !this.isCartOpen;
+        if (this.isCartOpen) {
+            this.isCheckoutOpen = false;
+        }
+    }
+    handleCheckout() {
+        this.isCartOpen = false;
+        this.isCheckoutOpen = true;
+    }
+    handleOrderSuccess() {
+        this.isCheckoutOpen = false;
+        // Show success notification (you can implement a toast notification)
+        alert('Order placed successfully!');
+    }
     render() {
         if (!this.user) {
             return html `
@@ -74,13 +86,17 @@ let MarketplaceApp = class MarketplaceApp extends LitElement {
         </div>
       `;
         }
-        // Seller View - removed sticky/shadow classes from inner nav, now using bid-navbar only
+        // Seller View
         if (this.user.userType === 'seller') {
             return html `
-        <bid-navbar .isDarkMode=${this.isDarkMode} @toggle-theme=${this.toggleTheme} @logout=${this.handleLogout}></bid-navbar>
+        <bid-navbar 
+          .isDarkMode=${this.isDarkMode} 
+          @toggle-theme=${this.toggleTheme} 
+          @logout=${this.handleLogout}
+          @cart-click=${this.toggleCart}
+        ></bid-navbar>
 
         <div class="min-h-screen" style="background-color: var(--background); color: var(--on-background);">
-          <!-- Seller Navigation - REMOVED sticky shadow classes, now delegated to bid-navbar -->
           <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <div class="flex justify-between items-center mb-6">
               <div class="flex space-x-2">
@@ -101,23 +117,33 @@ let MarketplaceApp = class MarketplaceApp extends LitElement {
               </div>
             </div>
 
-            <!-- Content based on active view -->
             ${this.activeView === 'seller'
                 ? html `<seller-dashboard .sellerId=${this.user.id} .sellerName=${this.user.username}></seller-dashboard>`
                 : html `<items-grid></items-grid>`}
           </div>
         </div>
+        
+        <cart-drawer .open=${this.isCartOpen} @close=${this.toggleCart} @checkout=${this.handleCheckout}></cart-drawer>
+        <checkout-form .open=${this.isCheckoutOpen} @close=${() => this.isCheckoutOpen = false} @order-success=${this.handleOrderSuccess}></checkout-form>
       `;
         }
-        // Buyer View - removed sticky/shadow classes from inner nav
+        // Buyer View
         return html `
-      <bid-navbar .isDarkMode=${this.isDarkMode} @toggle-theme=${this.toggleTheme} @logout=${this.handleLogout}></bid-navbar>
+      <bid-navbar 
+        .isDarkMode=${this.isDarkMode} 
+        @toggle-theme=${this.toggleTheme} 
+        @logout=${this.handleLogout}
+        @cart-click=${this.toggleCart}
+      ></bid-navbar>
 
       <div class="min-h-screen" style="background-color: var(--background); color: var(--on-background);">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <items-grid></items-grid>
         </div>
       </div>
+      
+      <cart-drawer .open=${this.isCartOpen} @close=${this.toggleCart} @checkout=${this.handleCheckout}></cart-drawer>
+      <checkout-form .open=${this.isCheckoutOpen} @close=${() => this.isCheckoutOpen = false} @order-success=${this.handleOrderSuccess}></checkout-form>
     `;
     }
 };
@@ -131,6 +157,12 @@ __decorate([
 __decorate([
     state()
 ], MarketplaceApp.prototype, "isDarkMode", void 0);
+__decorate([
+    state()
+], MarketplaceApp.prototype, "isCartOpen", void 0);
+__decorate([
+    state()
+], MarketplaceApp.prototype, "isCheckoutOpen", void 0);
 MarketplaceApp = __decorate([
     customElement('marketplace-app')
 ], MarketplaceApp);
