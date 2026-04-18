@@ -25,5 +25,14 @@
     "userType": "seller",
     "createdAt": "2026-04-18T08:06:01.950Z",
     "lastLogin": "2026-04-18T08:06:01.950Z"
+  },
+  {
+    "id": "67656ec7-4f12-46fa-8565-356eea69c067",
+    "email": "buyer@bidnest.com",
+    "username": "fdfdf",
+    "password": "$2b$10$lbPveD6WQTqRGaSRKi/VpuW8IgDhs/iMveqq6lfJLdl3iNQVCCxfy",
+    "userType": "buyer",
+    "createdAt": "2026-04-18T09:27:04.793Z",
+    "lastLogin": "2026-04-18T09:39:36.537Z"
   }
 ]

@@ -6,7 +6,7 @@ import { readUsers, writeUsers } from '../utils/fileHelpers.js';
 import { sendWelcomeEmail } from '../utils/email.service.js';
 import { authConfig } from '../config/auth.config.js';
 import { AppError } from '../middleware/error.middleware.js';
-import { users } from '../data/users.js';
+
 
 interface User {
   id: string;
@@ -86,30 +86,48 @@ export const login = async (req: Request, res: Response) => {
       throw new AppError('Email and password are required', 400);
     }
 
-
+    // READ users from file instead of importing
+    const users: User[] = readUsers();
+    console.log("users are ",users)
+    
+    console.log(`📖 Found ${users.length} users in database`);
+    
     const user = users.find(u => u.email === email);
 
     if (!user) {
+      console.log(`❌ User not found with email: ${email}`);
       throw new AppError('Invalid credentials', 401);
     }
 
+    console.log(`✅ User found: ${user.username} (${user.userType})`);
+
     const isValidPassword = await bcrypt.compare(password, user.password);
     if (!isValidPassword) {
+      console.log(`❌ Invalid password for user: ${user.username}`);
       throw new AppError('Invalid credentials', 401);
     }
+
+    console.log(`✅ Password verified for user: ${user.username}`);
 
     // Update last login
     user.lastLogin = new Date().toISOString();
     writeUsers(users);
 
-    // Generate access token - FIXED: use expiresIn as string
+    // Generate access token
     const accessToken = jwt.sign(
-      { id: user.id, email: user.email, username: user.username, userType: user.userType },
+      { 
+        id: user.id, 
+        email: user.email, 
+        username: user.username, 
+        userType: user.userType 
+      },
       authConfig.jwtSecret,
       { expiresIn: authConfig.jwtExpiresIn } as jwt.SignOptions
     );
 
     const { password: _, ...userWithoutPassword } = user;
+    
+    console.log(`✅ Login successful for: ${user.username}`);
     
     res.json({
       user: userWithoutPassword,

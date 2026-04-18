@@ -1,7 +1,7 @@
 import { LitElement, html, css } from "lit";
 import { unsafeHTML } from "lit/directives/unsafe-html.js";
 
-// SVG icons as raw strings
+// SVG icons as raw strings (keeping your existing icons)
 const menuIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>`;
 const xIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" x2="6" y1="6" y2="18"/><line x1="6" x2="18" y1="6" y2="18"/></svg>`;
 const shoppingBagIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>`;
@@ -23,17 +23,59 @@ const moonIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18"
 const sunIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>`;
 
 class BidNavbar extends LitElement {
-  isMenuOpen: boolean;
-  isBeeAnimating: boolean;
-  showNotifications: boolean;
-  showUserMenu: boolean;
-  isDarkMode: boolean;
-  scrolled: boolean;
-  beeTimeout: null;
-  isLoggedIn: boolean;
-  currentUser: any;
-  notifications: { id: number; type: string; title: string; time: string; icon: string; read: boolean; }[];
-  navItems: { path: string; label: string; icon: string; active: boolean; }[];
+  static properties = {
+    isMenuOpen: { type: Boolean },
+    isBeeAnimating: { type: Boolean },
+    showNotifications: { type: Boolean },
+    showUserMenu: { type: Boolean },
+    isDarkMode: { type: Boolean },
+    scrolled: { type: Boolean },
+    isLoggedIn: { type: Boolean },
+    currentUser: { type: Object },
+    notifications: { type: Array },
+    navItems: { type: Array }
+  };
+    isMenuOpen: boolean;
+    isBeeAnimating: boolean;
+    showNotifications: boolean;
+    showUserMenu: boolean;
+    isDarkMode: boolean;
+    scrolled: boolean;
+    beeTimeout: null;
+    isLoggedIn: boolean;
+    currentUser: any;
+    notifications: { id: number; type: string; title: string; time: string; icon: string; read: boolean; }[];
+    navItems: { path: string; label: string; icon: string; active: boolean; }[];
+
+  constructor() {
+    super();
+    this.isMenuOpen = false;
+    this.isBeeAnimating = false;
+    this.showNotifications = false;
+    this.showUserMenu = false;
+    
+    const savedDarkMode = localStorage.getItem('bidnest_darkMode');
+    this.isDarkMode = savedDarkMode === 'true';
+    this.scrolled = false;
+    this.beeTimeout = null;
+    
+    this.isLoggedIn = this.checkLoginStatus();
+    this.currentUser = this.getCurrentUser();
+
+    this.notifications = [
+      { id: 1, type: "message", title: "New message from Alex", time: "2 min ago", icon: messageCircleIcon, read: false },
+      { id: 2, type: "offer", title: "Offer on your item", time: "1 hour ago", icon: tagIcon, read: false },
+      { id: 3, type: "sale", title: "Item sold! 🎉", time: "3 hours ago", icon: shoppingBagIcon, read: true },
+      { id: 4, type: "achievement", title: "You're a top seller!", time: "1 day ago", icon: awardIcon, read: true },
+    ];
+
+    this.navItems = [
+      { path: "/", label: "Home", icon: homeIcon, active: false },
+      { path: "/browse", label: "Browse", icon: gridIcon, active: false },
+      { path: "/sell", label: "Sell", icon: tagIcon, active: false },
+      { path: "/messages", label: "Messages", icon: messageCircleIcon, active: false },
+    ];
+  }
 
   static styles = css`
     * {
@@ -357,6 +399,10 @@ class BidNavbar extends LitElement {
       transition: background-color 0.2s;
       cursor: pointer;
       text-decoration: none;
+      background: none;
+      border: none;
+      width: 100%;
+      text-align: left;
     }
 
     .dropdown-item:hover {
@@ -537,36 +583,6 @@ class BidNavbar extends LitElement {
     }
   `;
 
-  constructor() {
-    super();
-    this.isMenuOpen = false;
-    this.isBeeAnimating = false;
-    this.showNotifications = false;
-    this.showUserMenu = false;
-    
-    const savedDarkMode = localStorage.getItem('bidnest_darkMode');
-    this.isDarkMode = savedDarkMode === 'true';
-    this.scrolled = false;
-    this.beeTimeout = null;
-    
-    this.isLoggedIn = this.checkLoginStatus();
-    this.currentUser = this.getCurrentUser();
-
-    this.notifications = [
-      { id: 1, type: "message", title: "New message from Alex", time: "2 min ago", icon: messageCircleIcon, read: false },
-      { id: 2, type: "offer", title: "Offer on your item", time: "1 hour ago", icon: tagIcon, read: false },
-      { id: 3, type: "sale", title: "Item sold! 🎉", time: "3 hours ago", icon: shoppingBagIcon, read: true },
-      { id: 4, type: "achievement", title: "You're a top seller!", time: "1 day ago", icon: awardIcon, read: true },
-    ];
-
-    this.navItems = [
-      { path: "/", label: "Home", icon: homeIcon, active: false },
-      { path: "/browse", label: "Browse", icon: gridIcon, active: false },
-      { path: "/sell", label: "Sell", icon: tagIcon, active: false },
-      { path: "/messages", label: "Messages", icon: messageCircleIcon, active: false },
-    ];
-  }
-
   checkLoginStatus() {
     const token = localStorage.getItem('accessToken');
     const user = localStorage.getItem('user');
@@ -631,7 +647,8 @@ class BidNavbar extends LitElement {
 
   handleClickOutside(event) {
     const target = event.target;
-    if (!target.closest(".user-menu") && !target.closest(".notifications-menu")) {
+    // Don't close if clicking inside user menu or notifications
+    if (!target.closest('.user-menu') && !target.closest('.notifications-menu')) {
       let needsUpdate = false;
       if (this.showUserMenu) { 
         this.showUserMenu = false; 
@@ -657,7 +674,6 @@ class BidNavbar extends LitElement {
     if (this.isBeeAnimating) return;
     this.isBeeAnimating = true;
     if (this.beeTimeout) clearTimeout(this.beeTimeout);
-    //@ts-ignore
     this.beeTimeout = setTimeout(() => { 
       this.isBeeAnimating = false; 
       this.requestUpdate();
@@ -665,16 +681,25 @@ class BidNavbar extends LitElement {
     this.requestUpdate();
   }
 
-  handleLogout() {
+  handleLogout(e) {
+    // Prevent event from bubbling up
+    e.stopPropagation();
+    
+    // Clear localStorage
     localStorage.removeItem('accessToken');
     localStorage.removeItem('user');
+    
+    // Update state
     this.isLoggedIn = false;
     this.currentUser = null;
+    this.showUserMenu = false; // Close the dropdown
     this.requestUpdate();
     
+    // Dispatch events
     window.dispatchEvent(new CustomEvent('auth-changed', { detail: { isLoggedIn: false } }));
     this.dispatchEvent(new CustomEvent('logout', { bubbles: true, composed: true }));
     
+    // Redirect to home
     window.location.href = '/';
   }
 
@@ -702,6 +727,20 @@ class BidNavbar extends LitElement {
     window.dispatchEvent(new CustomEvent('darkmode-changed', { 
       detail: { isDarkMode: this.isDarkMode } 
     }));
+  }
+
+  toggleUserMenu(e) {
+    e.stopPropagation();
+    this.showUserMenu = !this.showUserMenu;
+    this.showNotifications = false;
+    this.requestUpdate();
+  }
+
+  toggleNotifications(e) {
+    e.stopPropagation();
+    this.showNotifications = !this.showNotifications;
+    this.showUserMenu = false;
+    this.requestUpdate();
   }
 
   renderLogo() {
@@ -754,7 +793,7 @@ class BidNavbar extends LitElement {
               ` : html`
                 <!-- LOGGED IN: Notifications -->
                 <div class="relative notifications-menu">
-                  <button class="icon-btn" @click=${() => { this.showNotifications = !this.showNotifications; this.showUserMenu = false; this.requestUpdate(); }} aria-label="Notifications">
+                  <button class="icon-btn" @click=${this.toggleNotifications} aria-label="Notifications">
                     ${this.icon(bellIcon, 20)}
                     ${unreadCount > 0 ? html`
                       <span class="notification-badge">
@@ -796,7 +835,7 @@ class BidNavbar extends LitElement {
 
                 <!-- LOGGED IN: User Menu -->
                 <div class="relative user-menu">
-                  <button class="user-menu-btn" @click=${() => { this.showUserMenu = !this.showUserMenu; this.showNotifications = false; this.requestUpdate(); }} aria-label="User menu">
+                  <button class="user-menu-btn" @click=${this.toggleUserMenu} aria-label="User menu">
                     <div class="user-avatar">
                       ${userName[0]?.toUpperCase()}
                     </div>

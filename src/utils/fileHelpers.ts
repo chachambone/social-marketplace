@@ -31,9 +31,34 @@ const usersPath = join(dataDir, 'users.json');
 const messagesPath = join(dataDir, 'messages.json');
 
 console.log(`📦 Items path: ${itemsPath}`);
+console.log(`👥 Users path: ${usersPath}`);
+console.log(`💬 Messages path: ${messagesPath}`);
+
+// Initialize default users if none exist
+const getDefaultUsers = () => {
+  return [
+    {
+      id: "1",
+      email: "buyer@test.com",
+      username: "buyer",
+      password: "$2a$10$YourHashedPasswordHere", // You'll need to generate this
+      userType: "buyer",
+      createdAt: new Date().toISOString(),
+      lastLogin: new Date().toISOString(),
+    },
+    {
+      id: "2",
+      email: "seller@test.com",
+      username: "seller",
+      password: "$2a$10$YourHashedPasswordHere", // You'll need to generate this
+      userType: "seller",
+      createdAt: new Date().toISOString(),
+      lastLogin: new Date().toISOString(),
+    }
+  ];
+};
 
 export const readItems = () => {
-  console.log(`📦 Items path: ${itemsPath}`);
   if (!existsSync(itemsPath)) {
     console.log(`⚠️ items.json not found at ${itemsPath}, creating empty array`);
     writeFileSync(itemsPath, JSON.stringify([], null, 2));
@@ -51,14 +76,20 @@ export const writeItems = (items: any[]) => {
 
 export const readUsers = () => {
   if (!existsSync(usersPath)) {
-    writeFileSync(usersPath, JSON.stringify([], null, 2));
+    console.log(`⚠️ users.json not found at ${usersPath}, creating with default users`);
+    const defaultUsers = getDefaultUsers();
+    writeFileSync(usersPath, JSON.stringify(defaultUsers, null, 2));
+    return defaultUsers;
   }
   const data = readFileSync(usersPath, 'utf-8');
-  return JSON.parse(data);
+  const users = JSON.parse(data);
+  console.log(`📖 Read ${users.length} users from ${usersPath}`);
+  return users;
 };
 
 export const writeUsers = (users: any[]) => {
   writeFileSync(usersPath, JSON.stringify(users, null, 2));
+  console.log(`💾 Wrote ${users.length} users to ${usersPath}`);
 };
 
 export const readMessages = () => {
