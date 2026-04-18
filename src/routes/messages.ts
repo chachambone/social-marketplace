@@ -1,4 +1,6 @@
 import { Router, Request, Response } from 'express';
+import { authenticateToken } from '../middleware/auth.middleware';
+import { getMessagesByItemId } from '../utils/fileHelpers';
 
 const router = Router();
 
@@ -38,6 +40,21 @@ router.get('/item/:itemId/poll/:timestamp', (req: Request, res: Response) => {
   } catch (error) {
     console.error('Error in polling:', error);
     res.status(500).json({ error: 'Failed to fetch messages' });
+  }
+});
+
+router.get('/item/:itemId', authenticateToken, (req, res) => {
+  try {
+    const { itemId } = req.params;
+    const messages = getMessagesByItemId(itemId as string);
+    res.json({
+      success: true,
+      messages,
+      count: messages.length
+    });
+  } catch (error) {
+    console.error('Error fetching chat history:', error);
+    res.status(500).json({ error: 'Failed to fetch chat history' });
   }
 });
 

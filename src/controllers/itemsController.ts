@@ -31,7 +31,6 @@ interface Item {
 export const getAllItems = (req: Request, res: Response) => {
   try {
     let items = readItems();
-    console.log("sdasd ", items);
     let filteredItems = items.filter((item: Item) => item.status === 'active');
 
     const { search } = req.query;

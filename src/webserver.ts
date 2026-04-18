@@ -1,5 +1,6 @@
 import { WebSocketServer, WebSocket } from 'ws';
 import { Server } from 'http';
+import { saveMessage, getMessagesByItemId, ChatMessage } from './utils/fileHelpers';
 
 interface WebSocketMessage {
   type: 'message' | 'bid';
@@ -37,6 +38,17 @@ export function setupWebSocketServer(server: Server) {
     // Add client to room
     clients.push({ ws, itemId, userId });
     
+    // Load and send previous messages
+    const previousMessages = getMessagesByItemId(itemId);
+    if (previousMessages.length > 0) {
+      console.log(`📜 Sending ${previousMessages.length} previous messages for item ${itemId}`);
+      ws.send(JSON.stringify({
+        type: 'history',
+        messages: previousMessages,
+        timestamp: new Date().toISOString()
+      }));
+    }
+    
     // Send connection confirmation
     ws.send(JSON.stringify({
       type: 'system',
@@ -49,10 +61,25 @@ export function setupWebSocketServer(server: Server) {
         const message: WebSocketMessage = JSON.parse(data.toString());
         console.log(`📨 Received: ${message.type} from ${message.senderName}`);
         
+        // Create persistent message object
+        const persistentMessage: ChatMessage = {
+          id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          itemId: message.itemId,
+          senderId: message.senderId,
+          senderName: message.senderName,
+          type: message.type,
+          content: message.content,
+          bidAmount: message.bidAmount,
+          timestamp: message.timestamp
+        };
+        
+        // Save to JSON database
+        saveMessage(persistentMessage);
+        
         // Broadcast to all clients in the same item room
         clients.forEach(client => {
           if (client.itemId === itemId && client.ws.readyState === WebSocket.OPEN) {
-            client.ws.send(JSON.stringify(message));
+            client.ws.send(JSON.stringify(persistentMessage));
           }
         });
       } catch (error) {
@@ -67,7 +94,7 @@ export function setupWebSocketServer(server: Server) {
     });
   });
   
-  console.log('✅ WebSocket server initialized');
+  console.log('✅ WebSocket server initialized with chat persistence');
   
   return wss;
 }

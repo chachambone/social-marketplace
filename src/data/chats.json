@@ -1,0 +1,29 @@
+[
+  {
+    "itemId": "3376a52f-7a63-4218-9e49-1de57f039a15",
+    "participants": [
+      "31f0c2fb-7cbe-4a74-9db6-aea8aa31d0bd"
+    ],
+    "messages": [
+      {
+        "id": "1776546380055-nba0livn8",
+        "itemId": "3376a52f-7a63-4218-9e49-1de57f039a15",
+        "senderId": "31f0c2fb-7cbe-4a74-9db6-aea8aa31d0bd",
+        "senderName": "Robinson Ngecu",
+        "type": "message",
+        "content": "Hello",
+        "timestamp": "2026-04-18T21:06:20.053Z"
+      },
+      {
+        "id": "1776546398573-2qvqus9ga",
+        "itemId": "3376a52f-7a63-4218-9e49-1de57f039a15",
+        "senderId": "31f0c2fb-7cbe-4a74-9db6-aea8aa31d0bd",
+        "senderName": "Robinson Ngecu",
+        "type": "message",
+        "content": "How is you?",
+        "timestamp": "2026-04-18T21:06:38.572Z"
+      }
+    ],
+    "lastUpdated": "2026-04-18T21:06:38.576Z"
+  }
+]

@@ -4,6 +4,17 @@ import { Item } from '../types/index.js';
 import { AuthService } from '../services/auth.js';
 import { tailwindCSS } from '../styles.js';
 
+interface ChatMessage {
+  id: string;
+  itemId: string;
+  senderId: string;
+  senderName: string;
+  type: 'message' | 'bid';
+  content?: string;
+  bidAmount?: number;
+  timestamp: string;
+}
+
 @customElement('bid-drawer')
 export class BidDrawer extends LitElement {
   static styles = [unsafeCSS(tailwindCSS), css`
@@ -24,7 +35,7 @@ export class BidDrawer extends LitElement {
 
   @property({ type: Object }) item!: Item;
   @property({ type: Boolean }) isOpen = false;
-  @state() private messages: any[] = [];
+  @state() private messages: ChatMessage[] = [];
   @state() private newMessage = '';
   @state() private bidAmount = '';
   @state() private isConnecting = true;
@@ -70,7 +81,15 @@ export class BidDrawer extends LitElement {
     
     this.ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
-      this.messages = [...this.messages, data];
+      
+      // Handle message history
+      if (data.type === 'history') {
+        console.log(`Received ${data.messages.length} historical messages`);
+        this.messages = data.messages;
+      } else if (data.type !== 'system') {
+        this.messages = [...this.messages, data];
+      }
+      
       this.requestUpdate();
       setTimeout(() => this.scrollToBottom(), 100);
     };
@@ -92,15 +111,16 @@ export class BidDrawer extends LitElement {
   private sendMessage() {
     if (!this.newMessage.trim() || !this.ws || this.ws.readyState !== WebSocket.OPEN) return;
     
-    this.ws.send(JSON.stringify({
-      type: 'message',
+    const message = {
+      type: 'message' as const,
       itemId: this.item.id,
       senderId: this.currentUser?.id,
       senderName: this.currentUser?.username,
       content: this.newMessage,
       timestamp: new Date().toISOString()
-    }));
+    };
     
+    this.ws.send(JSON.stringify(message));
     this.newMessage = '';
   }
 
@@ -108,15 +128,16 @@ export class BidDrawer extends LitElement {
     const amount = parseFloat(this.bidAmount);
     if (isNaN(amount) || amount <= 0 || !this.ws || this.ws.readyState !== WebSocket.OPEN) return;
     
-    this.ws.send(JSON.stringify({
-      type: 'bid',
+    const bidMessage = {
+      type: 'bid' as const,
       itemId: this.item.id,
       senderId: this.currentUser?.id,
       senderName: this.currentUser?.username,
       bidAmount: amount,
       timestamp: new Date().toISOString()
-    }));
+    };
     
+    this.ws.send(JSON.stringify(bidMessage));
     this.bidAmount = '';
   }
 
@@ -175,7 +196,7 @@ export class BidDrawer extends LitElement {
               </button>
             </div>
             
-            <!-- Content: Left 1/3 Details + Right 2/3 Chat (adjusted for 3/4 drawer) -->
+            <!-- Content: Left 1/3 Details + Right 2/3 Chat -->
             <div class="flex-1 flex overflow-hidden flex-row">
               <!-- Left Side - Item Details (1/3 of drawer width) -->
               <div class="w-1/3 overflow-y-auto p-4 border-r bg-gray-50">
@@ -207,7 +228,7 @@ export class BidDrawer extends LitElement {
                   </div>
                 </div>
                 
-                <!-- Description (collapsed) -->
+                <!-- Description -->
                 <div class="mb-4">
                   <p class="text-xs text-gray-600 line-clamp-3">${this.item.description}</p>
                 </div>
@@ -269,8 +290,8 @@ export class BidDrawer extends LitElement {
                     </div>
                   ` : ''}
                   
-                  ${this.messages.map((msg, idx) => html`
-                    <div key=${idx} class="animate-fade-in-up">
+                  ${this.messages.map((msg) => html`
+                    <div key=${msg.id} class="animate-fade-in-up">
                       <div class="${msg.senderId === this.currentUser?.id ? 'text-right' : 'text-left'}">
                         <div class="inline-block max-w-[85%]">
                           <div class="text-xs text-gray-500 mb-1">
@@ -282,7 +303,7 @@ export class BidDrawer extends LitElement {
                             ${msg.type === 'bid' ? html`
                               <div class="flex items-center gap-1">
                                 <span>💰</span>
-                                <span class="font-bold">Bid placed: KSh ${msg.bidAmount.toLocaleString()}</span>
+                                <span class="font-bold">Bid placed: KSh ${msg.bidAmount?.toLocaleString()}</span>
                               </div>
                             ` : html`
                               ${msg.content}

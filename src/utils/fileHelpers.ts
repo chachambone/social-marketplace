@@ -1,6 +1,25 @@
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
 import { join } from 'path';
 
+
+export interface ChatMessage {
+  id: string;
+  itemId: string;
+  senderId: string;
+  senderName: string;
+  type: 'message' | 'bid';
+  content?: string;
+  bidAmount?: number;
+  timestamp: string;
+}
+
+export interface ChatConversation {
+  itemId: string;
+  participants: string[];
+  messages: ChatMessage[];
+  lastUpdated: string;
+}
+
 // Try multiple possible paths for data
 const possibleDataPaths = [
   join(process.cwd(), 'src', 'data'),     // src/data (your current location)
@@ -29,6 +48,8 @@ if (!dataDir) {
 const itemsPath = join(dataDir, 'items.json');
 const usersPath = join(dataDir, 'users.json');
 const messagesPath = join(dataDir, 'messages.json');
+const chatsPath = join(dataDir, 'chats.json');
+
 
 console.log(`📦 Items path: ${itemsPath}`);
 console.log(`👥 Users path: ${usersPath}`);
@@ -102,4 +123,59 @@ export const readMessages = () => {
 
 export const writeMessages = (messages: any[]) => {
   writeFileSync(messagesPath, JSON.stringify(messages, null, 2));
+};
+
+
+export const readChats = (): ChatConversation[] => {
+  if (!existsSync(chatsPath)) {
+    console.log(`⚠️ chats.json not found at ${chatsPath}, creating empty array`);
+    writeFileSync(chatsPath, JSON.stringify([], null, 2));
+    return [];
+  }
+  const data = readFileSync(chatsPath, 'utf-8');
+  const chats = JSON.parse(data);
+  console.log(`📖 Read ${chats.length} conversations from ${chatsPath}`);
+  return chats;
+};
+
+export const writeChats = (chats: ChatConversation[]) => {
+  writeFileSync(chatsPath, JSON.stringify(chats, null, 2));
+  console.log(`💾 Wrote ${chats.length} conversations to ${chatsPath}`);
+};
+
+export const getChatByItemId = (itemId: string): ChatConversation | undefined => {
+  const chats = readChats();
+  return chats.find(chat => chat.itemId === itemId);
+};
+
+export const saveMessage = (message: ChatMessage): void => {
+  const chats = readChats();
+  const existingChatIndex = chats.findIndex(chat => chat.itemId === message.itemId);
+  
+  if (existingChatIndex !== -1) {
+    // Add message to existing chat
+    chats[existingChatIndex].messages.push(message);
+    chats[existingChatIndex].lastUpdated = new Date().toISOString();
+    
+    // Update participants if needed
+    if (!chats[existingChatIndex].participants.includes(message.senderId)) {
+      chats[existingChatIndex].participants.push(message.senderId);
+    }
+  } else {
+    // Create new chat conversation
+    const newChat: ChatConversation = {
+      itemId: message.itemId,
+      participants: [message.senderId],
+      messages: [message],
+      lastUpdated: new Date().toISOString()
+    };
+    chats.push(newChat);
+  }
+  
+  writeChats(chats);
+};
+
+export const getMessagesByItemId = (itemId: string): ChatMessage[] => {
+  const chat = getChatByItemId(itemId);
+  return chat ? chat.messages : [];
 };
