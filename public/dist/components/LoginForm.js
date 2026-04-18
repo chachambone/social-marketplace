@@ -117,7 +117,7 @@ let LoginForm = class LoginForm extends LitElement {
             <button 
               type="submit" 
               ?disabled=${this.isLoading}
-              class="flex-1 w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+              class="flex-1 w-full  py-2 rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed" style="background-color: var(--primary); color: var(--on-primary);"
             >
               ${this.isLoading ? 'Please wait...' : (this.isLoginMode ? 'Sign In' : 'Register')}
             </button>

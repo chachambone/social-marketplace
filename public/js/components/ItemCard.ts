@@ -2,7 +2,7 @@ import { LitElement, html, unsafeCSS } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { Item } from '../types/index.js';
 import { tailwindCSS } from '../styles.js';
-import './BidDrawer.js';
+import './bidDrawer.js';
 
 @customElement('item-card')
 export class ItemCard extends LitElement {

@@ -8,18 +8,49 @@ import { LitElement, html, unsafeCSS } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 import { AuthService } from './services/auth.js';
 import './components/LoginForm.js';
+import './components/navbar.js';
 import './components/ItemsGrid.js';
 import './components/SellerDashboard.js';
 import { tailwindCSS } from './styles.js';
+import { lightThemeColors, darkThemeColors } from './colors.js';
 let MarketplaceApp = class MarketplaceApp extends LitElement {
     constructor() {
         super();
         this.user = null;
         this.activeView = 'buyer';
+        this.isDarkMode = false;
         this.user = AuthService.getCurrentUser();
         if (this.user) {
             this.activeView = this.user.userType === 'seller' ? 'seller' : 'buyer';
         }
+        this.initTheme();
+    }
+    initTheme() {
+        // Check localStorage for theme preference
+        const savedTheme = localStorage.getItem('theme');
+        this.isDarkMode = savedTheme === 'dark';
+        console.log("Saved theme is ", savedTheme, " so isDarkMode is ", this.isDarkMode);
+        this.applyTheme();
+    }
+    applyTheme() {
+        const colors = this.isDarkMode ? darkThemeColors : lightThemeColors;
+        const root = document.documentElement;
+        console.log("colors is ", colors);
+        // Set CSS variables for all theme colors
+        Object.entries(colors).forEach(([key, value]) => {
+            root.style.setProperty(`--${this.camelToKebab(key)}`, value);
+        });
+        // Also set a data attribute for body class
+        document.body.setAttribute('data-theme', this.isDarkMode ? 'dark' : 'light');
+    }
+    camelToKebab(str) {
+        return str.replace(/([a-z0-9]|(?=[A-Z]))([A-Z])/g, '$1-$2').toLowerCase();
+    }
+    toggleTheme() {
+        this.isDarkMode = !this.isDarkMode;
+        localStorage.setItem('theme', this.isDarkMode ? 'dark' : 'light');
+        this.applyTheme();
+        this.requestUpdate();
     }
     handleLoginSuccess(e) {
         this.user = e.detail;
@@ -38,50 +69,39 @@ let MarketplaceApp = class MarketplaceApp extends LitElement {
     render() {
         if (!this.user) {
             return html `
-        <login-form @login-success=${this.handleLoginSuccess}></login-form>
+        <div>
+          <login-form @login-success=${this.handleLoginSuccess}></login-form>
+        </div>
       `;
         }
-        // Seller View
+        // Seller View - removed sticky/shadow classes from inner nav, now using bid-navbar only
         if (this.user.userType === 'seller') {
             return html `
-        <div class="min-h-screen bg-gray-100">
-          <!-- Seller Navigation -->
-          <div class="bg-white shadow-md sticky top-0 z-50">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div class="flex justify-between items-center py-4">
-                <div class="flex items-center space-x-4">
-                  <span class="text-2xl">🃏</span>
-                  <h1 class="text-xl font-bold text-gray-800">Seller Dashboard</h1>
-                  <div class="flex space-x-2 ml-4">
-                    <button 
-                      @click=${() => this.switchView('seller')}
-                      class="${this.activeView === 'seller' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'} px-4 py-2 rounded-lg transition-colors"
-                    >
-                      📊 Dashboard
-                    </button>
-                    <button 
-                      @click=${() => this.switchView('buyer')}
-                      class="${this.activeView === 'buyer' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'} px-4 py-2 rounded-lg transition-colors"
-                    >
-                      🛒 Browse Items
-                    </button>
-                  </div>
-                </div>
-                <div class="flex items-center space-x-4">
-                  <span class="text-sm text-gray-600">Welcome, ${this.user.username}!</span>
-                  <button 
-                    @click=${this.handleLogout}
-                    class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors"
-                  >
-                    Logout
-                  </button>
-                </div>
+        <bid-navbar .isDarkMode=${this.isDarkMode} @toggle-theme=${this.toggleTheme} @logout=${this.handleLogout}></bid-navbar>
+
+        <div class="min-h-screen" style="background-color: var(--background); color: var(--on-background);">
+          <!-- Seller Navigation - REMOVED sticky shadow classes, now delegated to bid-navbar -->
+          <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div class="flex justify-between items-center mb-6">
+              <div class="flex space-x-2">
+                <button 
+                  @click=${() => this.switchView('seller')}
+                  class="px-4 py-2 rounded-lg transition-colors"
+                  style="${this.activeView === 'seller' ? `background-color: var(--primary); color: var(--on-primary);` : `background-color: var(--surface-variant); color: var(--on-surface-variant);`}"
+                >
+                  📊 Dashboard
+                </button>
+                <button 
+                  @click=${() => this.switchView('buyer')}
+                  class="px-4 py-2 rounded-lg transition-colors"
+                  style="${this.activeView === 'buyer' ? `background-color: var(--primary); color: var(--on-primary);` : `background-color: var(--surface-variant); color: var(--on-surface-variant);`}"
+                >
+                  🛒 Browse Items
+                </button>
               </div>
             </div>
-          </div>
 
-          <!-- Content based on active view -->
-          <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <!-- Content based on active view -->
             ${this.activeView === 'seller'
                 ? html `<seller-dashboard .sellerId=${this.user.id} .sellerName=${this.user.username}></seller-dashboard>`
                 : html `<items-grid></items-grid>`}
@@ -89,29 +109,11 @@ let MarketplaceApp = class MarketplaceApp extends LitElement {
         </div>
       `;
         }
-        // Buyer View
+        // Buyer View - removed sticky/shadow classes from inner nav
         return html `
-      <div class="min-h-screen bg-gray-100">
-        <div class="bg-white shadow-md sticky top-0 z-50">
-          <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center py-4">
-              <div class="flex items-center space-x-2">
-                <span class="text-2xl">🃏</span>
-                <h1 class="text-xl font-bold text-gray-800">Collectible Trading Post</h1>
-              </div>
-              <div class="flex items-center space-x-4">
-                <span class="text-sm text-gray-600">Welcome, ${this.user.username}!</span>
-                <button 
-                  @click=${this.handleLogout}
-                  class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors"
-                >
-                  Logout
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-        
+      <bid-navbar .isDarkMode=${this.isDarkMode} @toggle-theme=${this.toggleTheme} @logout=${this.handleLogout}></bid-navbar>
+
+      <div class="min-h-screen" style="background-color: var(--background); color: var(--on-background);">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <items-grid></items-grid>
         </div>
@@ -126,6 +128,9 @@ __decorate([
 __decorate([
     state()
 ], MarketplaceApp.prototype, "activeView", void 0);
+__decorate([
+    state()
+], MarketplaceApp.prototype, "isDarkMode", void 0);
 MarketplaceApp = __decorate([
     customElement('marketplace-app')
 ], MarketplaceApp);

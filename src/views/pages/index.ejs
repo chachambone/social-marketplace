@@ -25,7 +25,7 @@
     <!-- Tailwind CSS CDN - Pure Tailwind, no custom CSS -->
     <link rel="stylesheet" href="/css/output.css">
     
-    <!-- Custom animation (still needed for spinner) -->
+    <!-- Custom animations -->
     <style>
         @keyframes spin {
             to { transform: rotate(360deg); }
@@ -33,33 +33,65 @@
         .animate-spin {
             animation: spin 1s linear infinite;
         }
+        
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0) scale(1) rotate(0deg); }
+            50% { transform: translateY(-10px) scale(1.1) rotate(12deg); }
+        }
+        .animate-slideDown { animation: slideDown 0.3s ease-out; }
+        .animate-bounce { animation: bounce 0.5s ease-in-out; }
+        .animate-pulse { 
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; 
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        /* Dark mode styles */
+        .dark-mode {
+            background-color: #1a1a2e;
+            color: #eee;
+        }
+        .dark-mode .bg-white {
+            background-color: #16213e !important;
+            color: #eee !important;
+        }
+        .dark-mode .bg-gray-50 {
+            background-color: #0f3460 !important;
+        }
+        .dark-mode .text-gray-900 {
+            color: #eee !important;
+        }
+        .dark-mode .text-gray-600,
+        .dark-mode .text-gray-500,
+        .dark-mode .text-gray-400 {
+            color: #aaa !important;
+        }
+        .dark-mode .border-gray-100,
+        .dark-mode .border-gray-200 {
+            border-color: #2a2a4a !important;
+        }
     </style>
 </head>
 <body class="bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen">
     <div id="app" class="flex flex-col min-h-screen">
-        <header class="bg-white shadow-md sticky top-0 z-50">
-            <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-                <div class="flex justify-between items-center">
-                    <div class="flex items-center space-x-2">
-                        <span class="text-3xl">🃏</span>
-                        <h1 class="text-xl sm:text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                            Collectible Trading Post
-                        </h1>
-                    </div>
-                    <div id="user-status" class="flex items-center space-x-4"></div>
-                </div>
-            </nav>
-        </header>
-
-        <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          
+        <!-- The navbar component will be injected here -->
+        
+        
+        
+        <main class="flex-1 w-full  py-8">
             <marketplace-app></marketplace-app>
         </main>
 
         <footer class="bg-white border-t border-gray-200 mt-auto">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
                 <p class="text-center text-gray-500 text-sm">
-                    © 2026 Collectible Trading Post. Buy, sell, and negotiate with confidence.
+                    © <span id="current-year"></span> BidNest. Buy, sell, and negotiate with confidence.
                 </p>
             </div>
         </footer>
@@ -67,5 +99,25 @@
     
     <!-- Load your compiled app -->
     <script type="module" src="/dist/app.js"></script>
+    
+    <!-- Dynamic year for footer -->
+    <script>
+        document.getElementById('current-year').textContent = new Date().getFullYear();
+        
+        // Listen for dark mode changes to update body class
+        window.addEventListener('darkmode-changed', (e) => {
+            if (e.detail.isDarkMode) {
+                document.body.classList.add('dark-mode');
+            } else {
+                document.body.classList.remove('dark-mode');
+            }
+        });
+        
+        // Check initial dark mode
+        const savedDarkMode = localStorage.getItem('bidnest_darkMode');
+        if (savedDarkMode === 'true') {
+            document.body.classList.add('dark-mode');
+        }
+    </script>
 </body>
 </html>
