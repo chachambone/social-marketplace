@@ -18,12 +18,50 @@ interface User {
   lastLogin: string;
 }
 
+// Function to generate a secure random password
+const generateSecurePassword = (length: number = 12): string => {
+  const uppercaseChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  const lowercaseChars = 'abcdefghijklmnopqrstuvwxyz';
+  const numberChars = '0123456789';
+  const specialChars = '!@#$%^&*()_+[]{}|;:,.<>?';
+  
+  const allChars = uppercaseChars + lowercaseChars + numberChars + specialChars;
+  
+  let password = '';
+  
+  // Ensure at least one character from each category
+  password += uppercaseChars[Math.floor(Math.random() * uppercaseChars.length)];
+  password += lowercaseChars[Math.floor(Math.random() * lowercaseChars.length)];
+  password += numberChars[Math.floor(Math.random() * numberChars.length)];
+  password += specialChars[Math.floor(Math.random() * specialChars.length)];
+  
+  // Fill the rest randomly
+  for (let i = password.length; i < length; i++) {
+    password += allChars[Math.floor(Math.random() * allChars.length)];
+  }
+  
+  // Shuffle the password
+  return password.split('').sort(() => Math.random() - 0.5).join('');
+};
+
 export const register = async (req: Request, res: Response) => {
   try {
-    const { email, username, password, userType = 'buyer' } = req.body;
+    const { email, username, userType = 'buyer' } = req.body;
 
-    if (!email || !username || !password) {
-      throw new AppError('Email, username, and password are required', 400);
+    // Validate required fields
+    if (!email || !username) {
+      throw new AppError('Email and username are required', 400);
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      throw new AppError('Invalid email format', 400);
+    }
+
+    // Validate username length
+    if (username.length < 3 || username.length > 30) {
+      throw new AppError('Username must be between 3 and 30 characters', 400);
     }
 
     const users: User[] = readUsers();
@@ -40,7 +78,13 @@ export const register = async (req: Request, res: Response) => {
       throw new AppError('Username already taken', 409);
     }
 
-    const hashedPassword = await bcrypt.hash(password, authConfig.bcryptSaltRounds);
+    // Generate secure system password
+    const systemGeneratedPassword = generateSecurePassword(12);
+    console.log(`🔐 System generated password for ${username}: ${systemGeneratedPassword}`);
+
+    // Hash the password for storage
+    const hashedPassword = await bcrypt.hash(systemGeneratedPassword, authConfig.bcryptSaltRounds);
+    
     const newUser: User = {
       id: uuidv4(),
       email,
@@ -54,10 +98,20 @@ export const register = async (req: Request, res: Response) => {
     users.push(newUser);
     writeUsers(users);
 
-    // Send welcome email with credentials
-    await sendWelcomeEmail({ email, username, password });
+    // Send welcome email with the generated password
+    const emailResult = await sendWelcomeEmail({ 
+      email, 
+      username, 
+      password: systemGeneratedPassword 
+    });
 
-    // Generate access token - FIXED: use expiresIn as string
+    if (!emailResult.success) {
+      console.error('⚠️ Failed to send welcome email, but user was created');
+      // Optionally: You might want to rollback user creation if email is critical
+      // For now, we'll continue but log the error
+    }
+
+    // Generate access token
     const accessToken = jwt.sign(
       { id: newUser.id, email, username, userType: newUser.userType },
       authConfig.jwtSecret,
@@ -67,14 +121,66 @@ export const register = async (req: Request, res: Response) => {
     const { password: _, ...userWithoutPassword } = newUser;
     
     res.status(201).json({
+      success: true,
+      message: 'User registered successfully. Credentials have been sent to your email.',
       user: userWithoutPassword,
       accessToken,
       userType: newUser.userType,
+      // For development only - remove in production
+      ...(process.env.NODE_ENV === 'development' && { 
+        temporaryPassword: systemGeneratedPassword 
+      }),
     });
   } catch (error) {
     if (error instanceof AppError) throw error;
     console.error('Registration error:', error);
     throw new AppError('Failed to register user', 500);
+  }
+};
+
+// Optional: Add password reset functionality
+export const resetPassword = async (req: Request, res: Response) => {
+  try {
+    const { email } = req.body;
+    
+    if (!email) {
+      throw new AppError('Email is required', 400);
+    }
+    
+    const users: User[] = readUsers();
+    const userIndex = users.findIndex(u => u.email === email);
+    
+    if (userIndex === -1) {
+      throw new AppError('User not found', 404);
+    }
+    
+    // Generate new password
+    const newPassword = generateSecurePassword(12);
+    const hashedPassword = await bcrypt.hash(newPassword, authConfig.bcryptSaltRounds);
+    
+    // Update user password
+    users[userIndex].password = hashedPassword;
+    writeUsers(users);
+    
+    // Send new password via email
+    const emailResult = await sendWelcomeEmail({
+      email,
+      username: users[userIndex].username,
+      password: newPassword,
+    });
+    
+    if (!emailResult.success) {
+      throw new AppError('Failed to send password reset email', 500);
+    }
+    
+    res.json({
+      success: true,
+      message: 'New password has been sent to your email',
+    });
+  } catch (error) {
+    if (error instanceof AppError) throw error;
+    console.error('Password reset error:', error);
+    throw new AppError('Failed to reset password', 500);
   }
 };
 

@@ -6,11 +6,11 @@ export class AuthService {
   private static currentUser: User | null = null;
   private static accessToken: string | null = null;
 
-  static async register(email: string, username: string, password: string, userType: 'buyer' | 'seller' = 'buyer'): Promise<LoginResponse> {
+  static async register(email: string, username: string, userType: 'buyer' | 'seller' = 'buyer'): Promise<LoginResponse> {
     const response = await fetch(`${API_URL}/users/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, username, password, userType })
+      body: JSON.stringify({ email, username, userType })
     });
 
     if (!response.ok) {

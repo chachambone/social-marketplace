@@ -939,6 +939,10 @@ video {
   gap: 0.5rem;
 }
 
+.gap-3 {
+  gap: 0.75rem;
+}
+
 .gap-4 {
   gap: 1rem;
 }
@@ -1003,8 +1007,16 @@ video {
   border-radius: 0.5rem;
 }
 
+.rounded-xl {
+  border-radius: 0.75rem;
+}
+
 .border {
   border-width: 1px;
+}
+
+.border-2 {
+  border-width: 2px;
 }
 
 .border-b {
@@ -1207,6 +1219,10 @@ video {
   text-align: right;
 }
 
+.font-mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
 .text-2xl {
   font-size: 1.5rem;
   line-height: 2rem;
@@ -1252,6 +1268,11 @@ video {
 
 .font-semibold {
   font-weight: 600;
+}
+
+.text-\[\#F3A712\] {
+  --tw-text-opacity: 1;
+  color: rgb(243 167 18 / var(--tw-text-opacity, 1));
 }
 
 .text-blue-600 {

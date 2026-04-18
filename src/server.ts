@@ -1,6 +1,8 @@
 import express from 'express';
 import cors from 'cors';
+import dotenv from 'dotenv';
 import path from 'path';
+
 import { fileURLToPath } from 'url';
 import { createServer } from 'http';
 import { requestLogger } from './middleware/logger.middleware.js';
@@ -10,6 +12,10 @@ import itemsRouter from './routes/items.js';
 import usersRouter from './routes/users.js';
 import messagesRouter from './routes/messages.js';
 import { setupWebSocketServer } from './webserver.js';
+
+
+// Load environment variables from .env file
+dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

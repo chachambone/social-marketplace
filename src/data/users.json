@@ -1,38 +1,11 @@
 [
   {
-    "id": "56bfb896-8c22-42fa-9a2b-40e7e3773e94",
-    "email": "seller@bidnest.com",
-    "username": "fdsfsdf",
-    "password": "$2b$10$oIJjssZl3Dghy/yWi8jdu.LXdHfVWmDT.mIr9kGBr6q2xw/Kyb8rO",
+    "id": "2ba595f6-7e46-49ae-9a8a-ef436fde4b08",
+    "email": "marycharity5@gmail.com",
+    "username": "Mary Charity",
+    "password": "$2b$10$ARRiYb5m3HXftxUoqCaYLeIAZZyS4yMcvfA50W7l9ba5NX1YJehre",
     "userType": "buyer",
-    "createdAt": "2026-04-17T21:57:31.626Z",
-    "lastLogin": "2026-04-17T21:57:31.626Z"
-  },
-  {
-    "id": "00771ae1-6905-4864-9452-af0609e604f2",
-    "email": "dsfdsf@gmail.com",
-    "username": "dsfdsf",
-    "password": "$2b$10$bG3fxv2YyXmL7LBRn7yltOMu0f4SbXDsRu0x1zJy/v/LxdQJKAl5a",
-    "userType": "seller",
-    "createdAt": "2026-04-17T21:58:53.861Z",
-    "lastLogin": "2026-04-17T21:58:53.861Z"
-  },
-  {
-    "id": "e839ac88-9259-4bca-8766-62b5f0bebb18",
-    "email": "SELLER@bidnest.com",
-    "username": "buyer",
-    "password": "$2b$10$2JIzNgU20E/wv/tVTI6BGePR7OpJ85mI27s3L8I1frenz7uzbaJzC",
-    "userType": "seller",
-    "createdAt": "2026-04-18T08:06:01.950Z",
-    "lastLogin": "2026-04-18T08:06:01.950Z"
-  },
-  {
-    "id": "67656ec7-4f12-46fa-8565-356eea69c067",
-    "email": "buyer@bidnest.com",
-    "username": "fdfdf",
-    "password": "$2b$10$lbPveD6WQTqRGaSRKi/VpuW8IgDhs/iMveqq6lfJLdl3iNQVCCxfy",
-    "userType": "buyer",
-    "createdAt": "2026-04-18T09:27:04.793Z",
-    "lastLogin": "2026-04-18T09:39:36.537Z"
+    "createdAt": "2026-04-18T10:32:54.036Z",
+    "lastLogin": "2026-04-18T10:32:54.037Z"
   }
 ]

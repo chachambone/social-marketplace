@@ -4,20 +4,39 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
-import { LitElement, html, unsafeCSS } from 'lit';
+import { LitElement, css, html, unsafeCSS } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 import { AuthService } from '../services/auth.js';
 import { tailwindCSS } from '../styles.js';
+import { unsafeHTML } from 'lit/directives/unsafe-html.js';
 let LoginForm = class LoginForm extends LitElement {
     constructor() {
         super(...arguments);
         this.isLoginMode = true;
         this.email = '';
-        this.username = '';
+        this.fullName = '';
         this.password = '';
         this.userType = 'buyer';
         this.error = '';
         this.isLoading = false;
+        // Lucide Icons as SVG strings
+        this.userIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`;
+        this.mailIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>`;
+        this.loader2Icon = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>`;
+        this.shoppingBagIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>`;
+        this.tagIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2H2v10l9.17 9.17a2 2 0 0 0 2.83 0l7-7a2 2 0 0 0 0-2.83z"/><circle cx="7" cy="7" r="2"/></svg>`;
+    }
+    icon(svg, size = 20, className = "") {
+        return html `<span class="inline-flex items-center justify-center ${className}" style="width:${size}px;height:${size}px">${unsafeHTML(svg)}</span>`;
+    }
+    get generatedUsername() {
+        if (!this.fullName)
+            return '';
+        return this.fullName
+            .toLowerCase()
+            .trim()
+            .replace(/[^a-z0-9\s]/g, '')
+            .replace(/\s+/g, '.');
     }
     async handleSubmit(e) {
         e.preventDefault();
@@ -29,7 +48,7 @@ let LoginForm = class LoginForm extends LitElement {
                 response = await AuthService.login(this.email, this.password);
             }
             else {
-                response = await AuthService.register(this.email, this.username, this.password, this.userType);
+                response = await AuthService.register(this.email, this.fullName, this.userType);
             }
             this.dispatchEvent(new CustomEvent('login-success', {
                 detail: response.user,
@@ -57,74 +76,106 @@ let LoginForm = class LoginForm extends LitElement {
               ${this.error}
             </div>
           ` : ''}
+
+          <!-- Role Selection Cards (Register Mode Only) -->
+          ${!this.isLoginMode ? html `
+            <div class="grid grid-cols-2 gap-3 mb-6">
+              <div 
+                @click=${() => { this.userType = 'buyer'; this.requestUpdate(); }}
+                class="role-card p-4 rounded-xl border-2 ${this.userType === 'buyer' ? 'active' : 'border-gray-200'}"
+              >
+                <div class="text-center">
+                  <div class="flex justify-center mb-2" style="color: ${this.userType === 'buyer' ? '#F3A712' : '#9CA3AF'}">
+                    ${this.icon(this.shoppingBagIcon, 28)}
+                  </div>
+                  <div class="font-semibold text-gray-900">Buyer</div>
+                  <div class="text-xs text-gray-500 mt-1">Browse & make offers</div>
+                </div>
+              </div>
+              <div 
+                @click=${() => { this.userType = 'seller'; this.requestUpdate(); }}
+                class="role-card p-4 rounded-xl border-2 ${this.userType === 'seller' ? 'active' : 'border-gray-200'}"
+              >
+                <div class="text-center">
+                  <div class="flex justify-center mb-2" style="color: ${this.userType === 'seller' ? '#F3A712' : '#9CA3AF'}">
+                    ${this.icon(this.tagIcon, 28)}
+                  </div>
+                  <div class="font-semibold text-gray-900">Seller</div>
+                  <div class="text-xs text-gray-500 mt-1">List & sell items</div>
+                </div>
+              </div>
+            </div>
+          ` : ''}
           
-          <!-- Email input with flex container -->
+          <!-- Email input -->
           <div class="flex flex-col gap-1">
             <label class="text-sm font-medium text-gray-700">Email</label>
             <input 
               type="email" 
               .value=${this.email}
               @input=${(e) => this.email = e.target.value}
-              class="flex-1 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
               required
             >
           </div>
           
           ${!this.isLoginMode ? html `
-            <!-- Username input with flex container -->
-            <div class="flex flex-col gap-1">
-              <label class="text-sm font-medium text-gray-700">Username</label>
-              <input 
-                type="text" 
-                .value=${this.username}
-                @input=${(e) => this.username = e.target.value}
-                class="flex-1 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                required
-              >
-            </div>
+
+              <div class="flex flex-col gap-1">
+            <label class="text-sm font-medium text-gray-700">Full Name</label>
+            <input 
+              placeholder="MaryCharity"
+              type="text" 
+              .value=${this.fullName}
+                  @input=${(e) => {
+            this.fullName = e.target.value;
+            this.requestUpdate();
+        }}              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              required
+            >
+          </div>
+
+             ${this.fullName ? html `
+                <p class="text-xs text-gray-500 mt-1">
+                  Username will be: <span class="font-mono text-[#F3A712]">${this.generatedUsername}</span>
+                </p>
+              ` : ''}
+
+            
           ` : ''}
           
-          <!-- Password input with flex container -->
+          <!-- Password input -->
+          
+          ${this.isLoginMode ? html `
+
           <div class="flex flex-col gap-1">
             <label class="text-sm font-medium text-gray-700">Password</label>
             <input 
               type="password" 
               .value=${this.password}
               @input=${(e) => this.password = e.target.value}
-              class="flex-1 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
               required
               minlength="6"
             >
-          </div>
+          </div> ` : html ``}
           
-          ${!this.isLoginMode ? html `
-            <!-- User type select with flex container -->
-            <div class="flex flex-col gap-1">
-              <label class="text-sm font-medium text-gray-700">I want to</label>
-              <select 
-                .value=${this.userType}
-                @change=${(e) => this.userType = e.target.value}
-                class="flex-1 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
-              >
-                <option value="buyer">Buy items</option>
-                <option value="seller">Sell items</option>
-              </select>
-            </div>
-          ` : ''}
+    
           
-          <!-- Button with flex container -->
+          <!-- Submit Button -->
           <div class="flex">
             <button 
               type="submit" 
               ?disabled=${this.isLoading}
-              class="flex-1 w-full  py-2 rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed" style="background-color: var(--primary); color: var(--on-primary);"
+              class="flex-1 w-full py-2 rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed" 
+              style="background-color: var(--primary); color: var(--on-primary);"
             >
               ${this.isLoading ? 'Please wait...' : (this.isLoginMode ? 'Sign In' : 'Register')}
             </button>
           </div>
         </form>
         
-        <!-- Toggle button container with flex -->
+        <!-- Toggle button -->
         <div class="mt-4 flex justify-center">
           <button 
             @click=${() => { this.isLoginMode = !this.isLoginMode; this.error = ''; }}
@@ -137,7 +188,46 @@ let LoginForm = class LoginForm extends LitElement {
     `;
     }
 };
-LoginForm.styles = unsafeCSS(tailwindCSS);
+LoginForm.styles = [unsafeCSS(tailwindCSS), css `
+    /* Custom animations and styles */
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    
+    .animate-spin {
+      animation: spin 1s linear infinite;
+    }
+    
+    .role-card {
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+    
+    .role-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+    
+    .role-card.active {
+      border-color: #F3A712;
+      background-color: #FEF3D7;
+      box-shadow: 0 4px 12px rgba(243, 167, 18, 0.15);
+    }
+    
+    .role-card svg {
+      transition: transform 0.2s ease;
+    }
+    
+    .role-card:hover svg {
+      transform: scale(1.05);
+    }
+    
+    input:focus {
+      outline: none;
+      ring-color: #F3A712;
+    }
+  `];
 __decorate([
     state()
 ], LoginForm.prototype, "isLoginMode", void 0);
@@ -146,7 +236,7 @@ __decorate([
 ], LoginForm.prototype, "email", void 0);
 __decorate([
     state()
-], LoginForm.prototype, "username", void 0);
+], LoginForm.prototype, "fullName", void 0);
 __decorate([
     state()
 ], LoginForm.prototype, "password", void 0);

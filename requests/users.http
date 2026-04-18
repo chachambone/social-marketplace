@@ -1,0 +1,123 @@
+### Variables
+@baseUrl = http://localhost:3000/api/users
+@contentType = application/json
+
+### ========================================
+### 1. REGISTER NEW USER
+### ========================================
+
+### Register a Buyer (Default)
+POST {{baseUrl}}/register
+Content-Type: {{contentType}}
+
+{
+  "email": "marycharity5@gmail.com",
+  "username": "Mary Charity"
+}
+
+### Register a Seller
+POST {{baseUrl}}/register
+Content-Type: {{contentType}}
+
+{
+  "email": "seller@example.com",
+  "username": "cool_seller",
+  "userType": "seller"
+}
+
+### Register with Custom UserType
+POST {{baseUrl}}/register
+Content-Type: {{contentType}}
+
+{
+  "email": "admin@example.com",
+  "username": "admin_user",
+  "userType": "admin"
+}
+
+### Register with Missing Fields (Should Fail)
+POST {{baseUrl}}/register
+Content-Type: {{contentType}}
+
+{
+  "email": "test@example.com"
+}
+
+### Register with Invalid Email (Should Fail)
+POST {{baseUrl}}/register
+Content-Type: {{contentType}}
+
+{
+  "email": "invalid-email",
+  "username": "testuser"
+}
+
+### Register with Short Username (Should Fail)
+POST {{baseUrl}}/register
+Content-Type: {{contentType}}
+
+{
+  "email": "test@example.com",
+  "username": "ab"
+}
+
+### ========================================
+### 2. LOGIN
+### ========================================
+
+### Login with Registered User
+POST {{baseUrl}}/login
+Content-Type: {{contentType}}
+
+{
+  "email": "john.doe@example.com",
+  "password": "GENERATED_PASSWORD_FROM_EMAIL"
+}
+
+### Login with Seller Account
+POST {{baseUrl}}/login
+Content-Type: {{contentType}}
+
+{
+  "email": "seller@example.com",
+  "password": "GENERATED_PASSWORD_FROM_EMAIL"
+}
+
+### Login with Wrong Password (Should Fail)
+POST {{baseUrl}}/login
+Content-Type: {{contentType}}
+
+{
+  "email": "john.doe@example.com",
+  "password": "wrongpassword123"
+}
+
+### Login with Non-existent Email (Should Fail)
+POST {{baseUrl}}/login
+Content-Type: {{contentType}}
+
+{
+  "email": "nonexistent@example.com",
+  "password": "password123"
+}
+
+### ========================================
+### 3. GET PROFILE (Protected Route)
+### ========================================
+
+### Get Profile with Token (Replace with actual token from login)
+GET {{baseUrl}}/profile
+Authorization: Bearer YOUR_ACCESS_TOKEN_HERE
+Content-Type: {{contentType}}
+
+### ========================================
+### 4. PASSWORD RESET (If implemented)
+### ========================================
+
+### Request Password Reset
+POST {{baseUrl}}/reset-password
+Content-Type: {{contentType}}
+
+{
+  "email": "john.doe@example.com"
+}

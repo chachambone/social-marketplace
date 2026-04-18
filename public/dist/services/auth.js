@@ -1,10 +1,10 @@
 const API_URL = 'http://localhost:3000/api';
 export class AuthService {
-    static async register(email, username, password, userType = 'buyer') {
+    static async register(email, username, userType = 'buyer') {
         const response = await fetch(`${API_URL}/users/register`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, username, password, userType })
+            body: JSON.stringify({ email, username, userType })
         });
         if (!response.ok) {
             const error = await response.json();
