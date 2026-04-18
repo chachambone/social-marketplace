@@ -1,41 +1,26 @@
 [
   {
-    "id": "0fe9ca57-4338-4ba5-9910-428f4384cc10",
-    "name": "iuyijhk",
-    "description": "kjlkjl",
-    "price": 67567,
-    "image": "https://cema-health-care.vercel.app/assets/image%20copy-BwMVO3_v.png",
-    "sellerId": "00771ae1-6905-4864-9452-af0609e604f2",
-    "sellerName": "dsfdsf",
+    "id": "3376a52f-7a63-4218-9e49-1de57f039a15",
+    "name": "SADFDFSF",
+    "description": "ASDASDFSFSDFSDFSDFSDFSDFSDFSDF",
+    "price": 86,
+    "image": "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=400",
+    "gallery": [],
+    "category": "Electronics",
+    "condition": "Good",
+    "location": "Nairobi, Kenya",
+    "shipping": "Local pickup only",
+    "tags": [
+      "ASDAS"
+    ],
+    "sellerId": "95969548-8f59-45c5-a332-69ad5a8b39d8",
+    "sellerName": "Jay Chacha",
+    "sellerEmail": "jaychacha071@gmail.com",
     "status": "active",
     "highestOffer": null,
     "highestOfferBuyer": null,
-    "createdAt": "2026-04-17T22:12:21.961Z"
-  },
-  {
-    "id": "a34d6b30-e883-4052-aa72-b147856d8c90",
-    "name": "gdfgfgd",
-    "description": "dfdsf",
-    "price": 342,
-    "image": "https://cema-health-care.vercel.app/assets/image%20copy-BwMVO3_v.png",
-    "sellerId": "00771ae1-6905-4864-9452-af0609e604f2",
-    "sellerName": "dsfdsf",
-    "status": "active",
-    "highestOffer": null,
-    "highestOfferBuyer": null,
-    "createdAt": "2026-04-17T22:13:51.645Z"
-  },
-  {
-    "id": "a528cf5e-f801-4626-9ef1-3b81226d4c74",
-    "name": "GFDG",
-    "description": "DFGFDG",
-    "price": 345,
-    "image": "https://cema-health-care.vercel.app/assets/image%20copy-BwMVO3_v.png",
-    "sellerId": "00771ae1-6905-4864-9452-af0609e604f2",
-    "sellerName": "dsfdsf",
-    "status": "active",
-    "highestOffer": null,
-    "highestOfferBuyer": null,
-    "createdAt": "2026-04-17T22:17:25.624Z"
+    "bidCount": 0,
+    "createdAt": "2026-04-18T20:50:47.052Z",
+    "paymentStatus": "pending"
   }
 ]
