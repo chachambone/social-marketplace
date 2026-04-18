@@ -674,6 +674,7 @@ class BidNavbar extends LitElement {
     if (this.isBeeAnimating) return;
     this.isBeeAnimating = true;
     if (this.beeTimeout) clearTimeout(this.beeTimeout);
+    //@ts-ignore
     this.beeTimeout = setTimeout(() => { 
       this.isBeeAnimating = false; 
       this.requestUpdate();
@@ -758,9 +759,9 @@ class BidNavbar extends LitElement {
 
   render() {
     const unreadCount = this.notifications.filter(n => !n.read).length;
-    const userName = this.currentUser?.name || 'Guest';
+    const userName = this.currentUser?.username || 'Guest';
     const userEmail = this.currentUser?.email || 'guest@example.com';
-    const userRole = this.currentUser?.role || 'buyer';
+    const userRole = this.currentUser?.userType || 'buyer';
 
     return html`
       <nav class="navbar ${this.scrolled ? 'scrolled' : ''}">

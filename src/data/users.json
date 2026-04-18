@@ -6,6 +6,15 @@
     "password": "$2b$10$ARRiYb5m3HXftxUoqCaYLeIAZZyS4yMcvfA50W7l9ba5NX1YJehre",
     "userType": "buyer",
     "createdAt": "2026-04-18T10:32:54.036Z",
-    "lastLogin": "2026-04-18T10:32:54.037Z"
+    "lastLogin": "2026-04-18T10:48:37.725Z"
+  },
+  {
+    "id": "95969548-8f59-45c5-a332-69ad5a8b39d8",
+    "email": "jaychacha071@gmail.com",
+    "username": "Jay Chacha",
+    "password": "$2b$10$S2ZntOUUEFTNWH0GtsVzdeBGZxVNJW36crrR25DJKhnC/KdZmEJ7e",
+    "userType": "seller",
+    "createdAt": "2026-04-18T10:38:19.326Z",
+    "lastLogin": "2026-04-18T10:38:19.326Z"
   }
 ]

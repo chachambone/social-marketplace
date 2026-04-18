@@ -8,6 +8,11 @@ export interface User {
 }
 
 export interface Item {
+  category: any;
+  location: any;
+  condition: any;
+  sold: any;
+  starting_price: number;
   id: string;
   name: string;
   description: string;
