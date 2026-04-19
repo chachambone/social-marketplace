@@ -1,66 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><%= title %></title>
-    
-    <!-- Import map for Lit -->
-    <script type="importmap">
-        {
-            "imports": {
-                "lit": "https://cdn.jsdelivr.net/npm/lit@3.2.1/index.js",
-                "lit/": "https://cdn.jsdelivr.net/npm/lit@3.2.1/",
-                "lit/decorators.js": "https://cdn.jsdelivr.net/npm/lit@3.2.1/decorators.js",
-                "lit-html": "https://cdn.jsdelivr.net/npm/lit-html@3.2.0/lit-html.js",
-                "lit-html/": "https://cdn.jsdelivr.net/npm/lit-html@3.2.0/",
-                "lit-element/lit-element.js": "https://cdn.jsdelivr.net/npm/lit-element@4.1.0/lit-element.js",
-                "@lit/reactive-element": "https://cdn.jsdelivr.net/npm/@lit/reactive-element@2.0.4/reactive-element.js",
-                "@lit/reactive-element/": "https://cdn.jsdelivr.net/npm/@lit/reactive-element@2.0.4/",
-                "lucide": "https://cdn.jsdelivr.net/npm/lucide@0.344.0/dist/umd/lucide.min.js"
-            }
-        }
-    </script>
-    
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    
-    <style>
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        @keyframes slideInRight {
-            from { opacity: 0; transform: translateX(20px); }
-            to { opacity: 1; transform: translateX(0); }
-        }
-        
-        .animate-fadeIn {
-            animation: fadeIn 0.5s ease-out;
-        }
-        
-        .animate-slideInRight {
-            animation: slideInRight 0.5s ease-out;
-        }
-        
-        /* Custom scrollbar */
-        ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
-        }
-        
-        ::-webkit-scrollbar-track {
-            background: #f1f1f1;
-            border-radius: 10px;
-        }
-        
-        ::-webkit-scrollbar-thumb {
-            background: #F3A712;
-            border-radius: 10px;
-        }
-    </style>
+    <%- include('../components/head', { 
+        title: title, 
+        description: description 
+    }) %>
 </head>
+
 <body class="bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen">
     <!-- Include Navbar -->
     <%- include('../components/navbar', { 

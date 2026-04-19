@@ -203,9 +203,9 @@ let LoginForm = class LoginForm extends LitElement {
         <div class="mt-4 flex justify-center">
           <button 
             @click=${() => { this.isLoginMode = !this.isLoginMode; this.error = ''; }}
-            class="text-blue-600 hover:text-blue-700 text-sm font-medium"
+            class="text-[var(--primary)] hover:text-blue-700 text-sm font-medium"
           >
-            ${this.isLoginMode ? 'Need an account? Register' : 'Already have an account? Sign In'}
+            ${this.isLoginMode ? html `Need an account? <span style="color: var(--primary);"> Register </span>` : html `Already have an account? <span style="color: var(--primary);"> Sign In </span>`}
           </button>
         </div>
       </div>

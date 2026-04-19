@@ -1,67 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><%= title %></title>
-    <meta name="description" content="<%= description %>">
-    
-    <!-- Import map for Lit -->
-    <script type="importmap">
-        {
-            "imports": {
-                "lit": "https://cdn.jsdelivr.net/npm/lit@3.2.1/index.js",
-                "lit/": "https://cdn.jsdelivr.net/npm/lit@3.2.1/",
-                "lit/decorators.js": "https://cdn.jsdelivr.net/npm/lit@3.2.1/decorators.js"
-            }
-        }
-    </script>
-    
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    
-    <style>
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        @keyframes slideInRight {
-            from { opacity: 0; transform: translateX(20px); }
-            to { opacity: 1; transform: translateX(0); }
-        }
-        
-        .animate-fadeIn {
-            animation: fadeIn 0.5s ease-out;
-        }
-        
-        .animate-slideInRight {
-            animation: slideInRight 0.5s ease-out;
-        }
-        
-        /* Form focus styles */
-        .form-input:focus {
-            outline: none;
-            ring: 2px solid #F3A712;
-            border-color: #F3A712;
-        }
-        
-        /* Toast animation */
-        @keyframes slideUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        
-        .toast-slide-up {
-            animation: slideUp 0.3s ease-out;
-        }
-    </style>
+    <%- include('../components/head', { 
+        title: title, 
+        description: description 
+    }) %>
 </head>
 <body class="bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen">
     <!-- Include Navbar -->

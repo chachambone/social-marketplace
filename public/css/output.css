@@ -2098,6 +2098,14 @@ video {
   color: rgb(133 77 14 / var(--tw-text-opacity, 1));
 }
 
+.text-\[blue-600\] {
+  color: blue-600;
+}
+
+.text-\[var\(--primary\)\] {
+  color: var(--primary);
+}
+
 .underline {
   text-decoration-line: underline;
 }
