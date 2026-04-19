@@ -2,8 +2,9 @@ import { User } from "../types";
 
 // AuthService.ts
 export class AuthService {
-  static currentUser: any;
-  static accessToken: any;
+  static currentUser: User | null = null;
+  static accessToken: string | null = null;
+
   static async login(email: string, password: string) {
     const response = await fetch('/api/users/login', {
       method: 'POST',
@@ -21,15 +22,22 @@ export class AuthService {
 
     const data = await response.json();
     
-    // Store token if needed for API calls
+    // Store user data in localStorage
+    if (data.user) {
+      localStorage.setItem('user', JSON.stringify(data.user));
+      this.currentUser = data.user;
+    }
+    
+    // Store token for API calls
     if (data.accessToken) {
       localStorage.setItem('accessToken', data.accessToken);
+      this.accessToken = data.accessToken;
     }
     
     return data;
   }
 
-    static getAccessToken(): string | null {
+  static getAccessToken(): string | null {
     if (this.accessToken) return this.accessToken;
     
     const stored = localStorage.getItem('accessToken');
@@ -40,13 +48,18 @@ export class AuthService {
     return null;
   }
   
-   static getCurrentUser(): User | null {
+  static getCurrentUser(): User | null {
     if (this.currentUser) return this.currentUser;
     
     const stored = localStorage.getItem('user');
     if (stored) {
-      this.currentUser = JSON.parse(stored);
-      return this.currentUser;
+      try {
+        this.currentUser = JSON.parse(stored);
+        return this.currentUser;
+      } catch (e) {
+        console.error('Error parsing user from localStorage', e);
+        return null;
+      }
     }
     return null;
   }
@@ -75,9 +88,16 @@ export class AuthService {
 
     const data = await response.json();
     
-    // Store token if needed for API calls
+    // Store user data in localStorage
+    if (data.user) {
+      localStorage.setItem('user', JSON.stringify(data.user));
+      this.currentUser = data.user;
+    }
+    
+    // Store token for API calls
     if (data.accessToken) {
       localStorage.setItem('accessToken', data.accessToken);
+      this.accessToken = data.accessToken;
     }
     
     return data;
@@ -89,7 +109,20 @@ export class AuthService {
       credentials: 'include'
     });
     
+    // Clear all stored data
     localStorage.removeItem('accessToken');
+    localStorage.removeItem('user');
+    localStorage.removeItem('favorites');
+    
+    this.accessToken = null;
+    this.currentUser = null;
+    
     return response;
+  }
+
+  // Helper method to update user data after profile changes
+  static updateUser(userData: User) {
+    localStorage.setItem('user', JSON.stringify(userData));
+    this.currentUser = userData;
   }
 }

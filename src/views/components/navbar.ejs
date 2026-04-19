@@ -6,46 +6,60 @@
       <div class="flex items-center gap-2">
         <a href="/" class="flex items-center gap-2">
           <img 
-            src="/images/logo.png" 
-            alt="BidNest Logo" 
+            src="/images/logo.jpg" 
+            alt="BidHive Logo" 
             class="h-8 w-auto object-contain cursor-pointer transition-all duration-300 hover:scale-110 hover:rotate-6"
           />
           <span class="font-black text-2xl tracking-tight hover:opacity-90 transition text-white">
-            Bid<span class="text-gray-900">Nest</span>
+            Bid<span class="text-gray-900">Hive</span>
           </span>
         </a>
       </div>
 
       <!-- Desktop Navigation - Conditional based on user type -->
       <div class="hidden md:flex items-center gap-1 bg-white/20 backdrop-blur-sm rounded-full px-2 py-1">
-        <% 
-        // Navigation items based on user type
-        let navItems = [
-          { path: "/", label: "Home", icon: "M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" }
-        ];
-        
-        if (user) {
+        <% if (user) { 
+          // Navigation items for logged in users
+          let navItems = [];
+          
           if (user.userType === 'seller') {
             navItems.push(
-              { path: "/seller/dashboard", label: "Dashboard", icon: "M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" },
+              { path: "/seller/dashboard", label: "Dashboard", icon: "M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" }
             );
           } else if (user.userType === 'buyer') {
             navItems.push(
-              { path: "/browse", label: "Browse", icon: "M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" },
+              { path: "/browse", label: "Browse", icon: "M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" }
             );
           }
-        }
+          
+          navItems.forEach(item => { %>
+            <a href="<%= item.path %>"
+              class="px-4 py-2 rounded-full transition-all duration-300 flex items-center gap-2 text-sm font-medium <%= currentPath === item.path ? 'bg-white text-[#F3A712] shadow-lg scale-105' : 'text-white hover:bg-white/20' %>">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="<%= item.icon %>"></path>
+              </svg>
+              <%= item.label %>
+            </a>
+          <% });
+        } else { 
+          // Guest Banner - Shown when not logged in
         %>
-        
-        <% navItems.forEach(item => { %>
-          <a href="<%= item.path %>"
-            class="px-4 py-2 rounded-full transition-all duration-300 flex items-center gap-2 text-sm font-medium <%= currentPath === item.path ? 'bg-white text-[#F3A712] shadow-lg scale-105' : 'text-white hover:bg-white/20' %>">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="<%= item.icon %>"></path>
-            </svg>
-            <%= item.label %>
-          </a>
-        <% }); %>
+          <div class="flex items-center gap-3 px-4 py-1">
+            <div class="flex items-center gap-2">
+              <svg class="w-4 h-4 text-white/80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+              </svg>
+              <span class="text-white/90 text-sm font-medium">Guest Mode</span>
+            </div>
+            <div class="w-px h-4 bg-white/30"></div>
+            <div class="flex items-center gap-2">
+              <svg class="w-4 h-4 text-white/80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M6 5h12M6 19h12M5 3h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2z"></path>
+              </svg>
+              <span class="text-white/80 text-xs">Browse as guest</span>
+            </div>
+          </div>
+        <% } %>
       </div>
 
       <!-- Right Section -->
@@ -61,10 +75,13 @@
 
         <!-- NOT LOGGED IN -->
         <% if (!user) { %>
-          <a href="/login"
-            class="text-sm font-semibold text-[#F3A712] bg-white px-4 py-2 rounded-full hover:bg-white/90 transition hidden sm:block">
-            Sign In / Register
-          </a>
+          <div class="flex gap-2">
+            <a href="/login"
+              class="text-sm font-semibold text-[#F3A712] bg-white px-4 py-2 rounded-full hover:bg-white/90 transition hidden sm:block">
+              Sign In/Register
+            </a>
+          
+          </div>
         
         <% } else { %>
           <!-- LOGGED IN: Notifications -->
@@ -115,10 +132,6 @@
                   <span class="text-sm text-gray-700">My Profile</span>
                 </a>
                 
-              
-                
-             
-                
                 <div class="border-t my-1"></div>
                 <a href="/logout" class="flex items-center gap-3 px-4 py-3 hover:bg-red-50 transition group">
                   <svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -146,15 +159,40 @@
   <!-- Mobile Navigation -->
   <div id="mobileMenu" class="hidden md:hidden py-4 border-t border-white/20 animate-slideDown" style="background-color: #F3A712;">
     <div class="flex flex-col gap-2 px-4">
-      <% navItems.forEach(item => { %>
-        <a href="<%= item.path %>"
-          class="px-4 py-3 rounded-xl transition flex items-center gap-3 text-white hover:bg-white/10">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="<%= item.icon %>"></path>
-          </svg>
-          <%= item.label %>
-        </a>
-      <% }); %>
+      <% if (user) { 
+        let mobileNavItems = [];
+        
+        if (user.userType === 'seller') {
+          mobileNavItems.push(
+            { path: "/seller/dashboard", label: "Dashboard", icon: "M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" }
+          );
+        } else if (user.userType === 'buyer') {
+          mobileNavItems.push(
+            { path: "/browse", label: "Browse", icon: "M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" }
+          );
+        }
+        
+        mobileNavItems.forEach(item => { %>
+          <a href="<%= item.path %>"
+            class="px-4 py-3 rounded-xl transition flex items-center gap-3 text-white hover:bg-white/10">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="<%= item.icon %>"></path>
+            </svg>
+            <%= item.label %>
+          </a>
+        <% });
+      } else { %>
+        <!-- Guest Mode in Mobile Menu -->
+        <div class="px-4 py-3 text-center">
+          <div class="bg-white/10 rounded-xl p-4 mb-2">
+            <svg class="w-12 h-12 mx-auto text-white/60 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+            </svg>
+            <p class="text-white font-medium">Guest Mode</p>
+            <p class="text-white/70 text-xs mt-1">Sign in to access more features</p>
+          </div>
+        </div>
+      <% } %>
       
       <div class="border-t border-white/20 my-2"></div>
       
@@ -222,7 +260,7 @@
   const darkModeIcon = document.getElementById('darkModeIcon');
   
   if (darkModeToggle && darkModeIcon) {
-    const isDarkMode = localStorage.getItem('bidnest_darkMode') === 'true';
+    const isDarkMode = localStorage.getItem('bidhive_darkMode') === 'true';
     if (isDarkMode) {
       document.documentElement.classList.add('dark');
       document.body.classList.add('dark-mode');
@@ -232,7 +270,7 @@
     darkModeToggle.addEventListener('click', () => {
       const isDark = document.body.classList.toggle('dark-mode');
       document.documentElement.classList.toggle('dark', isDark);
-      localStorage.setItem('bidnest_darkMode', isDark);
+      localStorage.setItem('bidhive_darkMode', isDark);
       
       if (isDark) {
         darkModeIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>';
@@ -242,3 +280,35 @@
     });
   }
 </script>
+
+<style>
+  /* Animation for dropdown */
+  @keyframes slideDown {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  .animate-slideDown {
+    animation: slideDown 0.3s ease-out;
+  }
+  
+  /* Dark mode styles */
+  .dark-mode {
+    background-color: #1a1a2e;
+    color: #eee;
+  }
+  
+  .dark-mode .bg-white {
+    background-color: #16213e !important;
+  }
+  
+  .dark-mode .text-gray-900 {
+    color: #eee !important;
+  }
+</style>

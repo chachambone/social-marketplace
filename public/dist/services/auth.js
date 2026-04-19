@@ -14,9 +14,15 @@ export class AuthService {
             throw new Error(error.message || 'Login failed');
         }
         const data = await response.json();
-        // Store token if needed for API calls
+        // Store user data in localStorage
+        if (data.user) {
+            localStorage.setItem('user', JSON.stringify(data.user));
+            this.currentUser = data.user;
+        }
+        // Store token for API calls
         if (data.accessToken) {
             localStorage.setItem('accessToken', data.accessToken);
+            this.accessToken = data.accessToken;
         }
         return data;
     }
@@ -35,8 +41,14 @@ export class AuthService {
             return this.currentUser;
         const stored = localStorage.getItem('user');
         if (stored) {
-            this.currentUser = JSON.parse(stored);
-            return this.currentUser;
+            try {
+                this.currentUser = JSON.parse(stored);
+                return this.currentUser;
+            }
+            catch (e) {
+                console.error('Error parsing user from localStorage', e);
+                return null;
+            }
         }
         return null;
     }
@@ -60,9 +72,15 @@ export class AuthService {
             throw new Error(error.message || 'Registration failed');
         }
         const data = await response.json();
-        // Store token if needed for API calls
+        // Store user data in localStorage
+        if (data.user) {
+            localStorage.setItem('user', JSON.stringify(data.user));
+            this.currentUser = data.user;
+        }
+        // Store token for API calls
         if (data.accessToken) {
             localStorage.setItem('accessToken', data.accessToken);
+            this.accessToken = data.accessToken;
         }
         return data;
     }
@@ -71,7 +89,19 @@ export class AuthService {
             method: 'GET',
             credentials: 'include'
         });
+        // Clear all stored data
         localStorage.removeItem('accessToken');
+        localStorage.removeItem('user');
+        localStorage.removeItem('favorites');
+        this.accessToken = null;
+        this.currentUser = null;
         return response;
     }
+    // Helper method to update user data after profile changes
+    static updateUser(userData) {
+        localStorage.setItem('user', JSON.stringify(userData));
+        this.currentUser = userData;
+    }
 }
+AuthService.currentUser = null;
+AuthService.accessToken = null;

@@ -88,6 +88,14 @@ private async handleSubmit(e: Event) {
       response = await AuthService.register(this.email, this.fullName, this.userType);
     }
     
+    // Make sure user data is properly stored
+    if (response.user) {
+      // The AuthService should have stored it, but let's ensure
+      if (!localStorage.getItem('user')) {
+        localStorage.setItem('user', JSON.stringify(response.user));
+      }
+    }
+    
     // Dispatch success event
     this.dispatchEvent(new CustomEvent('login-success', { 
       detail: response.user, 
@@ -95,9 +103,12 @@ private async handleSubmit(e: Event) {
       composed: true 
     }));
     
-    // 🔥 Force page reload to reflect session state
-    // This will trigger the server-side redirect logic
-    window.location.href = '/';
+    // Redirect based on user type
+    if (response.user?.userType === 'seller') {
+      window.location.href = '/seller/dashboard';
+    } else {
+      window.location.href = '/';
+    }
     
   } catch (err: any) {
     this.error = err.message;
@@ -112,7 +123,7 @@ private async handleSubmit(e: Event) {
 
         <div class="text-4xl mb-2">🐝</div>            
         <h2>
-          ${this.isLoginMode ? html `Welcome Back to <span style="color:#F3A712">BidNest</span> ` : 'Create Account'}
+          ${this.isLoginMode ? html `Welcome Back to <span style="color:#F3A712">BidHive</span> ` : 'Create Account'}
         </h2>
 
                 <p class="text-gray-500 text-sm mt-1">${this.isLoginMode ? html `Sign in to continue` : 'Sign up to get started'}</p>

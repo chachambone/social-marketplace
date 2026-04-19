@@ -89,7 +89,7 @@ app.use(session({
     sameSite: 'lax',
     ...(process.env.NODE_ENV !== 'production' && { secure: false })
   },
-  name: 'bidnest.sid'
+  name: 'bidhive.sid'
 }));
 
 // 4. Debug logging middleware
@@ -160,7 +160,7 @@ app.get('/', async (req: CustomRequest, res: Response) => {
     // If user is logged in, pass user data to template
     if (req.session.userId && res.locals.user) {
       return res.render('index', {
-        title: 'BidNest - Social Marketplace for Collectibles',
+        title: 'BidHive - Social Marketplace for Collectibles',
         description: 'Buy, sell, and negotiate prices on collectible items',
         listings: listings,
         listingsCount: listings.length,
@@ -171,7 +171,7 @@ app.get('/', async (req: CustomRequest, res: Response) => {
     
     // Not logged in
     res.render('index', {
-      title: 'BidNest - Social Marketplace for Collectibles',
+      title: 'BidHive - Social Marketplace for Collectibles',
       description: 'Buy, sell, and negotiate prices on collectible items',
       listings: listings,
       listingsCount: listings.length,
@@ -181,7 +181,7 @@ app.get('/', async (req: CustomRequest, res: Response) => {
   } catch (error) {
     console.error('Error fetching listings:', error);
     res.render('index', {
-      title: 'BidNest - Social Marketplace for Collectibles',
+      title: 'BidHive - Social Marketplace for Collectibles',
       description: 'Buy, sell, and negotiate prices on collectible items',
       listings: [],
       listingsCount: 0,
@@ -204,7 +204,7 @@ app.get('/dashboard', requireAuth, (req: CustomRequest, res: Response) => {
   
   // Default fallback
   res.render('dashboard', {
-    title: 'Dashboard - BidNest',
+    title: 'Dashboard - BidHive',
     user: user
   });
 });
@@ -218,8 +218,8 @@ app.get('/browse', requireAuth, (req: CustomRequest, res: Response) => {
   }
   
   res.render('browser', {
-    title: 'Browse Items - BidNest',
-    description: 'Browse and shop items on BidNest',
+    title: 'Browse Items - BidHive',
+    description: 'Browse and shop items on BidHive',
     user: user,
     userType: 'buyer',
     currentPath: '/browse'
@@ -251,7 +251,7 @@ app.get('/seller/dashboard', requireAuth, (req: CustomRequest, res: Response) =>
   };
   
   res.render('seller-dashboard', {
-    title: 'Seller Dashboard - BidNest',
+    title: 'Seller Dashboard - BidHive',
     user: userForTemplate,
     userType: 'seller'
   });
@@ -266,7 +266,7 @@ app.get('browse', requireAuth, (req: CustomRequest, res: Response) => {
   }
   
   res.render('browser', {
-    title: 'BidNest',
+    title: 'BidHive',
     user: user,
     userType: 'buyer'
   });
@@ -277,14 +277,14 @@ app.get('/login', redirectIfAuthenticated, (req: CustomRequest, res: Response) =
   const redirectUrl = req.query.redirect || '/';
   
   res.render('login', {
-    title: 'Login - BidNest',
-    description: 'Login to your BidNest account',
+    title: 'Login - BidHive',
+    description: 'Login to your BidHive account',
     redirectUrl: redirectUrl,
     showSocialLogin: true,
     socialProviders: ['google', 'github'],
     enableDemoLogin: process.env.NODE_ENV === 'development',
     demoCredentials: {
-      email: 'demo@bidnest.com',
+      email: 'demo@bidhive.com',
       password: 'demo123'
     },
     user: null
@@ -294,8 +294,8 @@ app.get('/login', redirectIfAuthenticated, (req: CustomRequest, res: Response) =
 // Register page
 app.get('/register', redirectIfAuthenticated, (req: CustomRequest, res: Response) => {
   res.render('register', {
-    title: 'Register - BidNest',
-    description: 'Create a new BidNest account',
+    title: 'Register - BidHive',
+    description: 'Create a new BidHive account',
     user: null
   });
 });
@@ -318,7 +318,7 @@ app.get('/profile', requireAuth, async (req: CustomRequest, res: Response) => {
   }
   
   res.render('profile', {
-    title: 'Profile - BidNest',
+    title: 'Profile - BidHive',
     description: 'Manage your account settings',
     user: user,
     currentPath: '/profile'
@@ -359,7 +359,7 @@ const server = createServer(app);
 setupWebSocketServer(server);
 
 server.listen(PORT, HOST, () => {
-  console.log(`🚀 Server running on http://${HOST}:${PORT}`);
-  console.log(`🔌 WebSocket server ready for real-time chat`);
-  console.log(`💾 Session storage: ${sessionsDir}`);
+  console.log(`Server running on http://${HOST}:${PORT}`);
+  console.log(`WebSocket server ready for real-time chat`);
+  console.log(`Session storage: ${sessionsDir}`);
 });

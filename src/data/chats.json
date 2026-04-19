@@ -88,7 +88,8 @@
   {
     "itemId": "55181b3a-c052-4076-8626-d614d6f564bc",
     "participants": [
-      "95969548-8f59-45c5-a332-69ad5a8b39d8"
+      "95969548-8f59-45c5-a332-69ad5a8b39d8",
+      "2ba595f6-7e46-49ae-9a8a-ef436fde4b08"
     ],
     "messages": [
       {
@@ -99,8 +100,26 @@
         "type": "message",
         "content": "hELLO",
         "timestamp": "2026-04-19T13:16:29.963Z"
+      },
+      {
+        "id": "1776611197293-35q4hefho",
+        "itemId": "55181b3a-c052-4076-8626-d614d6f564bc",
+        "senderId": "2ba595f6-7e46-49ae-9a8a-ef436fde4b08",
+        "senderName": "chacha",
+        "type": "bid",
+        "bidAmount": 5000,
+        "timestamp": "2026-04-19T15:06:37.289Z"
+      },
+      {
+        "id": "1776611220121-w28n2dgkd",
+        "itemId": "55181b3a-c052-4076-8626-d614d6f564bc",
+        "senderId": "2ba595f6-7e46-49ae-9a8a-ef436fde4b08",
+        "senderName": "chacha",
+        "type": "message",
+        "content": "This is the highest bid seal the deal",
+        "timestamp": "2026-04-19T15:07:00.122Z"
       }
     ],
-    "lastUpdated": "2026-04-19T13:16:29.959Z"
+    "lastUpdated": "2026-04-19T15:07:00.122Z"
   }
 ]

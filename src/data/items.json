@@ -48,5 +48,29 @@
     "bidCount": 0,
     "createdAt": "2026-04-19T12:32:31.546Z",
     "paymentStatus": "pending"
+  },
+  {
+    "id": "277a8658-784e-4a44-a26d-dbdd26e920f8",
+    "name": "Vision TowerSpeaker 240W Sound System VP2060TS",
+    "description": "Experience premium audio with the Vision Plus Tower Speaker 240W, a handcrafted wooden sound system delivering powerful 240W output through dual subwoofers, midrange drivers, and tweeters, with versatile connectivity options including Bluetooth, USB, AUX, and HDMI for an immersive entertainment experience.\n\nOutput Power: 240W (Max Power)\nWarranty: 2 Years\nBody: Hand-made wooden cabinet for powerful bass and elegant design.\nHeight: 62CM\nSpeaker (SUB): 6.5” X2\nSpeaker (MID): 3” X2\nSpeaker (TWEETERS): 1″ X2\nFeatures: BT/USB/ AUX/ LED DISPLAY/ HDMI/ REMOTE\nFM Radio: Yes\nDimensions: W160XH620XD300mm",
+    "price": 17159,
+    "image": "https://ke.jumia.is/unsafe/fit-in/680x680/filters:fill(white)/product/33/0256523/1.jpg?6313",
+    "gallery": [
+      "https://ke.jumia.is/unsafe/fit-in/680x680/filters:fill(white)/product/33/0256523/1.jpg?6313"
+    ],
+    "category": "Electronics",
+    "condition": "Good",
+    "location": "Nairobi, Kenya",
+    "shipping": "Local pickup only",
+    "tags": [],
+    "sellerId": "95969548-8f59-45c5-a332-69ad5a8b39d8",
+    "sellerName": "Jay Chacha",
+    "sellerEmail": "jaychacha071@gmail.com",
+    "status": "active",
+    "highestOffer": null,
+    "highestOfferBuyer": null,
+    "bidCount": 0,
+    "createdAt": "2026-04-19T15:11:37.913Z",
+    "paymentStatus": "pending"
   }
 ]

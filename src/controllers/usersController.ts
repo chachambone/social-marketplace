@@ -48,6 +48,8 @@ export const register = async (req: Request, res: Response) => {
   try {
     const { email, username, userType = 'buyer' } = req.body;
 
+    
+
     // Validate required fields
     if (!email || !username) {
       throw new AppError('Email and username are required', 400);
@@ -248,12 +250,13 @@ export const login = async (req: Request, res: Response) => {
       const { password: _, ...userWithoutPassword } = user;
       console.log(`✅ Login successful for: ${user.username}, Session ID: ${req.session.id}`);
       
-      res.json({
-        success: true,
-        user: userWithoutPassword,
-        accessToken,
-        userType: user.userType,
-      });
+        res.json({
+      success: true,
+      user: userWithoutPassword, // Make sure this has id, email, username, userType
+      accessToken,
+      userType: user.userType,
+    });
+
     });
   } catch (error) {
     if (error instanceof AppError) throw error;

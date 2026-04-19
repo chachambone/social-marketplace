@@ -54,7 +54,7 @@ class BidNavbar extends LitElement {
     this.showNotifications = false;
     this.showUserMenu = false;
     
-    const savedDarkMode = localStorage.getItem('bidnest_darkMode');
+    const savedDarkMode = localStorage.getItem('bidhive_darkMode');
     this.isDarkMode = savedDarkMode === 'true';
     this.scrolled = false;
     this.beeTimeout = null;
@@ -710,11 +710,11 @@ class BidNavbar extends LitElement {
     if (this.isDarkMode) {
       document.documentElement.classList.add('dark');
       document.body.classList.add('dark-mode');
-      localStorage.setItem('bidnest_darkMode', 'true');
+      localStorage.setItem('bidhive_darkMode', 'true');
     } else {
       document.documentElement.classList.remove('dark');
       document.body.classList.remove('dark-mode');
-      localStorage.setItem('bidnest_darkMode', 'false');
+      localStorage.setItem('bidhive_darkMode', 'false');
     }
     
     this.requestUpdate();

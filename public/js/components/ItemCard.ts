@@ -12,7 +12,7 @@ export class ItemCard extends LitElement {
   static styles = unsafeCSS(tailwindCSS);
 
   @property({ type: Object }) item!: Item;
-  @property({ type: String }) currentUserId = '';
+  @property({ type: String }) currentUserId = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')!).id : null;
   @property({ type: Boolean }) showDrawer = false;
   @property({ type: Boolean }) showDetailsModal = false;
   @property({ type: Boolean }) showChatDrawer = false;
@@ -108,6 +108,7 @@ export class ItemCard extends LitElement {
   }
 
   render() {
+    console.log("Rendering ItemCard for item:", this.item,this.currentUserId);
     const isOwner = this.currentUserId === this.item.sellerId;
     
     return html`
