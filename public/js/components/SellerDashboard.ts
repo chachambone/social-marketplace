@@ -799,27 +799,6 @@ export class SellerDashboard extends LitElement {
     }
   }
 
-  private async loadStats() {
-    this.stats.totalItems = this.myItems.length;
-    this.stats.totalBids = this.myItems.reduce((sum, item) => sum + ((item as any).bidCount || 0), 0);
-    this.stats.pendingSales = this.myItems.filter(item => (item as any).paymentStatus === 'pending').length;
-    this.stats.totalRevenue = this.myItems
-      .filter(item => item.status === 'sold')
-      .reduce((sum, item) => sum + item.price, 0);
-    
-    try {
-      const token = AuthService.getAccessToken();
-      const response = await fetch(`/api/chats/seller/${this.sellerId}`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (response.ok) {
-        const chats = await response.json();
-        this.stats.activeChats = chats.length;
-      }
-    } catch (error) {
-      this.stats.activeChats = 3;
-    }
-  }
 
   private validateItem() {
     const errors: Record<string, string> = {};
@@ -902,6 +881,39 @@ export class SellerDashboard extends LitElement {
     this.newItem.tags = this.newItem.tags.filter(t => t !== tag);
     this.requestUpdate();
   }
+
+  private async loadStats() {
+  try {
+    const token = AuthService.getAccessToken();
+    const response = await fetch(`/api/items/seller/${this.sellerId}/stats`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    
+    if (response.ok) {
+      const data = await response.json();
+      if (data.success && data.stats) {
+        this.stats = {
+          totalItems: data.stats.totalItems || 0,
+          totalBids: data.stats.totalBids || 0,
+          activeChats: data.stats.activeChats || 0,
+          pendingSales: data.stats.pendingSales || 0,
+          totalRevenue: data.stats.totalRevenue || 0
+        };
+      }
+    }
+  } catch (error) {
+    console.error('Error loading stats:', error);
+    // Fallback to local calculation
+    this.stats.totalItems = this.myItems.length;
+    this.stats.totalBids = this.myItems.reduce((sum, item) => sum + ((item as any).bidCount || 0), 0);
+    this.stats.pendingSales = this.myItems.filter(item => 
+      item.status === 'active' && ((item as any).bidCount || 0) > 0
+    ).length;
+    this.stats.totalRevenue = this.myItems
+      .filter(item => item.status === 'sold')
+      .reduce((sum, item) => sum + item.price, 0);
+  }
+}
 
 private async createItem(e: Event) {
   e.preventDefault();
@@ -1177,14 +1189,19 @@ private async createItem(e: Event) {
             </div>
           </div>
 
-          <!-- Action Bar -->
           <div class="action-bar">
-            <h2 class="section-title">My Products</h2>
-            <button @click=${this.toggleAddItem} class="btn-primary">
-              <span>+</span>
-              ${this.showAddItem ? 'Cancel' : 'Add New Item'}
-            </button>
-          </div>
+  <h2 class="section-title">My Products</h2>
+  <div class="flex gap-3">
+    <a href="/seller/chats" class="btn-primary" style="background-color: #8B5CF6;">
+      💬 View All Chats
+    </a>
+    <button @click=${this.toggleAddItem} class="btn-primary">
+      <span>+</span>
+      ${this.showAddItem ? 'Cancel' : 'Add New Item'}
+    </button>
+  </div>
+</div>
+
 
           <!-- Add/Edit Item Form -->
           ${this.showAddItem || this.showEditItem ? html`

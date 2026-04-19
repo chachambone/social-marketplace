@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 // import { readItems } from '../utils/fileHelpers';
-import { readItems, writeItems, readUsers } from '../utils/fileHelpers.js';
+import { readItems, writeItems, readUsers, readMessages } from '../utils/fileHelpers.js';
 
 interface Item {
   id: string;
@@ -92,41 +92,7 @@ export const getItem = (req: Request, res: Response) => {
   }
 };
 
-export const getSellerStats = (req: Request, res: Response) => {
-  try {
-    const sellerId = req.params.sellerId;
-    const items = readItems();
-    const sellerItems = items.filter((item: Item) => item.sellerId === sellerId);
-    
-    const stats = {
-      totalItems: sellerItems.length,
-      totalBids: sellerItems.reduce((sum, item) => sum + (item.bidCount || 0), 0),
-      pendingSales: sellerItems.filter(item => item.paymentStatus === 'pending').length,
-      totalRevenue: sellerItems
-        .filter(item => item.status === 'sold')
-        .reduce((sum, item) => sum + item.price, 0),
-      activeItems: sellerItems.filter(item => item.status === 'active').length,
-      soldItems: sellerItems.filter(item => item.status === 'sold').length
-    };
-    
-    res.json(stats);
-  } catch (error) {
-    console.error('Error fetching seller stats:', error);
-    res.status(500).json({ error: 'Failed to fetch seller stats' });
-  }
-};
 
-export const getSellerItems = (req: Request, res: Response) => {
-  try {
-    const sellerId = req.params.sellerId;
-    const items = readItems();
-    const sellerItems = items.filter((item: Item) => item.sellerId === sellerId);
-    res.json(sellerItems);
-  } catch (error) {
-    console.error('Error fetching seller items:', error);
-    res.status(500).json({ error: 'Failed to fetch seller items' });
-  }
-};
 
 export const createItem = (req: Request, res: Response) => {
   try {
@@ -353,5 +319,61 @@ export const getFeaturedItems = (req: Request, res: Response) => {
   } catch (error) {
     console.error('Error fetching featured items:', error);
     res.status(500).json({ error: 'Failed to fetch featured items' });
+  }
+};
+
+export const getSellerStats = async (req: Request, res: Response) => {
+  try {
+    const { sellerId } = req.params;
+    const items = readItems();
+    const sellerItems = items.filter((item: any) => item.sellerId === sellerId);
+    
+    // Calculate stats
+    const totalItems = sellerItems.length;
+    const totalBids = sellerItems.reduce((sum: number, item: any) => sum + (item.bidCount || 0), 0);
+    const totalRevenue = sellerItems
+      .filter((item: any) => item.status === 'sold' && item.paymentStatus === 'completed')
+      .reduce((sum: number, item: any) => sum + (item.price || 0), 0);
+    const pendingSales = sellerItems.filter((item: any) => 
+      item.status === 'active' && (item.bidCount || 0) > 0
+    ).length;
+    
+    // Get active chats count from messages
+    const messagesData = readMessages();
+    const activeChats = messagesData.filter((chat: any) => 
+      chat.participants?.includes(sellerId) && 
+      chat.messages?.length > 0
+    ).length;
+    
+    res.json({
+      success: true,
+      stats: {
+        totalItems,
+        totalBids,
+        totalRevenue,
+        pendingSales,
+        activeChats
+      }
+    });
+  } catch (error) {
+    console.error('Error getting seller stats:', error);
+    res.status(500).json({ error: 'Failed to get seller stats' });
+  }
+};
+
+export const getSellerItems = async (req: Request, res: Response) => {
+  try {
+    const { sellerId } = req.params;
+    const items = readItems();
+    const sellerItems = items.filter((item: any) => item.sellerId === sellerId);
+    
+    res.json({
+      success: true,
+      items: sellerItems,
+      count: sellerItems.length
+    });
+  } catch (error) {
+    console.error('Error getting seller items:', error);
+    res.status(500).json({ error: 'Failed to get seller items' });
   }
 };

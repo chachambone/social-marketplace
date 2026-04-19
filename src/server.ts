@@ -205,6 +205,7 @@ app.get('/dashboard', requireAuth, (req: CustomRequest, res: Response) => {
   // Default fallback
   res.render('dashboard', {
     title: 'Dashboard - BidHive',
+    description: 'Buy, sell, and negotiate prices on collectible items',
     user: user
   });
 });
@@ -253,7 +254,9 @@ app.get('/seller/dashboard', requireAuth, (req: CustomRequest, res: Response) =>
   res.render('seller-dashboard', {
     title: 'Seller Dashboard - BidHive',
     user: userForTemplate,
-    userType: 'seller'
+    userType: 'seller',
+    description: 'Buy, sell, and negotiate prices on collectible items',
+
   });
 });
 
@@ -324,6 +327,27 @@ app.get('/profile', requireAuth, async (req: CustomRequest, res: Response) => {
     currentPath: '/profile'
   });
 });
+
+
+app.get('/seller/chats', requireAuth, (req: CustomRequest, res: Response) => {
+  const user = res.locals.user;
+  
+  if (!user) {
+    return res.redirect('/login');
+  }
+  
+  if (user.userType !== 'seller') {
+    return res.redirect('/dashboard');
+  }
+  
+  res.render('seller-chat', {
+    title: 'Seller Chat Center - BidHive',
+    description: 'Manage conversations with buyers',
+    user: user,
+    currentPath: '/seller/chats'
+  });
+});
+
 
 // API routes
 app.use('/api/items', itemsRouter);
