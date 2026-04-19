@@ -17,6 +17,6 @@
     "allowJs": false,
     "isolatedModules": true
   },
-  "include": ["src/**/*.ts", "public/js/**/*.ts", "*.config.ts"],
+  "include": ["src/**/*.ts", "public/js/**/*.ts", "*.config.ts", "public/js/components/base-components"],
   "exclude": ["node_modules", "dist", "public/dist"]
 }
