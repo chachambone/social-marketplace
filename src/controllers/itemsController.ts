@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 // import { readItems } from '../utils/fileHelpers';
-import { readItems, writeItems, readUsers, readMessages } from '../utils/fileHelpers.js';
+import { readItems, writeItems, readUsers, readMessages, readChats } from '../utils/fileHelpers.js';
 
 interface Item {
   id: string;
@@ -322,37 +322,61 @@ export const getFeaturedItems = (req: Request, res: Response) => {
   }
 };
 
+
 export const getSellerStats = async (req: Request, res: Response) => {
   try {
     const { sellerId } = req.params;
     const items = readItems();
+    const chats = readChats();
+    
+    // Filter items for this seller
     const sellerItems = items.filter((item: any) => item.sellerId === sellerId);
     
-    // Calculate stats
-    const totalItems = sellerItems.length;
-    const totalBids = sellerItems.reduce((sum: number, item: any) => sum + (item.bidCount || 0), 0);
-    const totalRevenue = sellerItems
-      .filter((item: any) => item.status === 'sold' && item.paymentStatus === 'completed')
-      .reduce((sum: number, item: any) => sum + (item.price || 0), 0);
-    const pendingSales = sellerItems.filter((item: any) => 
-      item.status === 'active' && (item.bidCount || 0) > 0
+    // 1. TOTAL ITEMS - Remove items with paymentStatus: 'completed' (sold items)
+    const totalItems = sellerItems.filter((item: any) => 
+      item.paymentStatus !== 'completed' && item.status !== 'sold'
     ).length;
     
-    // Get active chats count from messages
-    const messagesData = readMessages();
-    const activeChats = messagesData.filter((chat: any) => 
-      chat.participants?.includes(sellerId) && 
-      chat.messages?.length > 0
+    // 2. TOTAL BIDS - Get from chats.json messages where type === 'bid'
+    let totalBids = 0;
+    const sellerItemIds = sellerItems.map((item: any) => item.id);
+    
+    chats.forEach((chat: any) => {
+      if (sellerItemIds.includes(chat.itemId) && chat.messages) {
+        const bidCount = chat.messages.filter((msg: any) => msg.type === 'bid').length;
+        totalBids += bidCount;
+      }
+    });
+    
+    // 3. ACTIVE CHATS - Items that are not sold and have messages
+    const activeChats = chats.filter((chat: any) => {
+      const item = items.find((i: any) => i.id === chat.itemId);
+      return sellerItemIds.includes(chat.itemId) && 
+             item && 
+             item.paymentStatus !== 'completed' && 
+             item.status !== 'sold' &&
+             chat.messages && 
+             chat.messages.length > 0;
+    }).length;
+    
+    // 4. PENDING SALES - Items with paymentStatus === 'pending' (not yet paid/completed)
+    const pendingSales = sellerItems.filter((item: any) => 
+      item.paymentStatus === 'pending' && item.status !== 'sold'
     ).length;
+    
+    // 5. TOTAL REVENUE - Sum of prices from sold items (paymentStatus: 'completed')
+    const totalRevenue = sellerItems
+      .filter((item: any) => item.paymentStatus === 'completed' || item.status === 'sold')
+      .reduce((sum: number, item: any) => sum + (item.price || 0), 0);
     
     res.json({
       success: true,
       stats: {
         totalItems,
         totalBids,
-        totalRevenue,
+        activeChats,
         pendingSales,
-        activeChats
+        totalRevenue
       }
     });
   } catch (error) {
@@ -365,15 +389,79 @@ export const getSellerItems = async (req: Request, res: Response) => {
   try {
     const { sellerId } = req.params;
     const items = readItems();
+    const chats = readChats();
+    
+    // Get all items for this seller
     const sellerItems = items.filter((item: any) => item.sellerId === sellerId);
+    
+    // Enhance items with chat information
+    const enhancedItems = sellerItems.map((item: any) => {
+      const chat = chats.find((c: any) => c.itemId === item.id);
+      const bidCount = chat?.messages?.filter((msg: any) => msg.type === 'bid').length || 0;
+      const lastMessage = chat?.messages?.[chat.messages.length - 1];
+      
+      return {
+        ...item,
+        bidCount,
+        lastMessage: lastMessage || null,
+        hasActiveChat: chat && chat.messages && chat.messages.length > 0
+      };
+    });
     
     res.json({
       success: true,
-      items: sellerItems,
-      count: sellerItems.length
+      items: enhancedItems,
+      count: sellerItems.length,
+      activeChatsCount: enhancedItems.filter((i: any) => i.hasActiveChat && i.paymentStatus !== 'completed').length
     });
   } catch (error) {
     console.error('Error getting seller items:', error);
     res.status(500).json({ error: 'Failed to get seller items' });
+  }
+};
+
+// Add this new function to get chat details for a specific item
+export const getItemChatDetails = async (req: Request, res: Response) => {
+  try {
+    const { itemId } = req.params;
+    const items = readItems();
+    const chats = readChats();
+    
+    const item = items.find((i: any) => i.id === itemId);
+    if (!item) {
+      return res.status(404).json({ error: 'Item not found' });
+    }
+    
+    const chat = chats.find((c: any) => c.itemId === itemId);
+    
+    // Get all unique participants (buyers who have messaged or bid)
+    const participants = chat?.participants?.filter((p: any) => p !== item.sellerId) || [];
+    
+    // Get all bids from this item
+    const bids = chat?.messages?.filter((msg: any) => msg.type === 'bid') || [];
+    const highestBid = bids.length > 0 
+      ? Math.max(...bids.map((b: any) => b.bidAmount))
+      : null;
+    const highestBidder = bids.length > 0 
+      ? bids.find((b: any) => b.bidAmount === highestBid)?.senderName
+      : null;
+    
+    res.json({
+      success: true,
+      item: {
+        ...item,
+        chat: chat || { messages: [], participants: [] },
+        stats: {
+          totalMessages: chat?.messages?.length || 0,
+          totalBids: bids.length,
+          uniqueBuyers: participants.length,
+          highestBid,
+          highestBidder
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Error getting item chat details:', error);
+    res.status(500).json({ error: 'Failed to get item chat details' });
   }
 };

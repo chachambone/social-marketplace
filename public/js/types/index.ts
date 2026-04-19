@@ -9,6 +9,7 @@ export interface User {
 }
 
 export interface Item {
+  bidCount: number;
   category: any;
   location: any;
   condition: any;
@@ -25,7 +26,7 @@ export interface Item {
   highestOffer: number | null;
   highestOfferBuyer: string | null;
   createdAt: string;
-  paymentStatus?: 'pending' | 'paid';
+  paymentStatus?: 'pending' | 'paid' | 'completed';
 }
 
 export interface Message {

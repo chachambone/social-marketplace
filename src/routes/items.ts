@@ -1,3 +1,4 @@
+// routes/items.js - Add the new route
 import { Router } from 'express';
 import { 
   getAllItems, 
@@ -8,7 +9,8 @@ import {
   checkoutItem,
   confirmSale, 
   getSellerItems,
-  getSellerStats
+  getSellerStats,
+  getItemChatDetails  // Add this
 } from '../controllers/itemsController.js';
 import { authenticateToken } from '../middleware/auth.middleware.js';
 
@@ -23,5 +25,6 @@ router.post('/:id/checkout', checkoutItem);
 router.post('/:id/confirm-sale', confirmSale);
 router.get('/seller/:sellerId/stats', authenticateToken, getSellerStats);
 router.get('/seller/:sellerId/items', authenticateToken, getSellerItems);
+router.get('/:itemId/chat-details', authenticateToken, getItemChatDetails);  // Add this
 
 export default router;

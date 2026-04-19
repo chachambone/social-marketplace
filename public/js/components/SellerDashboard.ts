@@ -882,7 +882,7 @@ export class SellerDashboard extends LitElement {
     this.requestUpdate();
   }
 
-  private async loadStats() {
+private async loadStats() {
   try {
     const token = AuthService.getAccessToken();
     const response = await fetch(`/api/items/seller/${this.sellerId}/stats`, {
@@ -899,20 +899,37 @@ export class SellerDashboard extends LitElement {
           pendingSales: data.stats.pendingSales || 0,
           totalRevenue: data.stats.totalRevenue || 0
         };
+        console.log('Stats loaded:', this.stats);
       }
+    } else {
+      console.error('Failed to load stats:', await response.text());
+      // Fallback calculation
+      this.calculateStatsLocally();
     }
   } catch (error) {
     console.error('Error loading stats:', error);
-    // Fallback to local calculation
-    this.stats.totalItems = this.myItems.length;
-    this.stats.totalBids = this.myItems.reduce((sum, item) => sum + ((item as any).bidCount || 0), 0);
-    this.stats.pendingSales = this.myItems.filter(item => 
-      item.status === 'active' && ((item as any).bidCount || 0) > 0
-    ).length;
-    this.stats.totalRevenue = this.myItems
-      .filter(item => item.status === 'sold')
-      .reduce((sum, item) => sum + item.price, 0);
+    this.calculateStatsLocally();
   }
+}
+
+private calculateStatsLocally() {
+  // Local fallback calculation
+  this.stats.totalItems = this.myItems.filter(item => 
+    item.paymentStatus !== 'completed' && item.status !== 'sold'
+  ).length;
+  
+  this.stats.totalBids = this.myItems.reduce((sum, item) => sum + (item.bidCount || 0), 0);
+  this.stats.pendingSales = this.myItems.filter(item => 
+    item.paymentStatus === 'pending' && item.status !== 'sold'
+  ).length;
+  
+  this.stats.totalRevenue = this.myItems
+    .filter(item => item.paymentStatus === 'completed' || item.status === 'sold')
+    .reduce((sum, item) => sum + item.price, 0);
+  
+  this.stats.activeChats = this.myItems.filter(item => 
+    (item.bidCount || 0) > 0 && item.paymentStatus !== 'completed'
+  ).length;
 }
 
 private async createItem(e: Event) {

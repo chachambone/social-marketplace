@@ -121,7 +121,7 @@ private async handleSubmit(e: Event) {
       <div class="max-w-md mx-auto mt-16 p-8 bg-white rounded-lg shadow-lg">
         <div class="text-2xl font-bold text-center mb-6 text-gray-800">
 
-        <div class="text-4xl mb-2">🐝</div>            
+        <a href="/" class="text-4xl mb-2">🐝</a>            
         <h2>
           ${this.isLoginMode ? html `Welcome Back to <span style="color:#F3A712">BidHive</span> ` : 'Create Account'}
         </h2>
