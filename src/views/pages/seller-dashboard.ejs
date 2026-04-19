@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    
+    <!-- Import map for Lit -->
+    <script type="importmap">
+        {
+            "imports": {
+                "lit": "https://cdn.jsdelivr.net/npm/lit@3.2.1/index.js",
+                "lit/": "https://cdn.jsdelivr.net/npm/lit@3.2.1/",
+                "lit/decorators.js": "https://cdn.jsdelivr.net/npm/lit@3.2.1/decorators.js",
+                "lit-html": "https://cdn.jsdelivr.net/npm/lit-html@3.2.0/lit-html.js",
+                "lit-html/": "https://cdn.jsdelivr.net/npm/lit-html@3.2.0/",
+                "lit-element/lit-element.js": "https://cdn.jsdelivr.net/npm/lit-element@4.1.0/lit-element.js",
+                "@lit/reactive-element": "https://cdn.jsdelivr.net/npm/@lit/reactive-element@2.0.4/reactive-element.js",
+                "@lit/reactive-element/": "https://cdn.jsdelivr.net/npm/@lit/reactive-element@2.0.4/",
+                "lucide": "https://cdn.jsdelivr.net/npm/lucide@0.344.0/dist/umd/lucide.min.js"
+            }
+        }
+    </script>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <style>
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes slideInRight {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        
+        .animate-fadeIn {
+            animation: fadeIn 0.5s ease-out;
+        }
+        
+        .animate-slideInRight {
+            animation: slideInRight 0.5s ease-out;
+        }
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #F3A712;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen">
+    <!-- Include Navbar -->
+    <%- include('../components/navbar', { 
+        user: user,
+        currentPath: currentPath || '/buyer/dashboard'
+    }) %>
+    
+    <!-- Main Content -->
+    <div class="container mx-auto">
+        <div class="animate-fadeIn">
+        
+            
+          
+        </div>
+    </div>
+    
+    <!-- Component configuration -->
+    <%- include('component-loader', { 
+        components: [
+            { 
+                fileName: 'SellerDashboard.js', 
+                componentName: 'SellerDashboard',
+                customName: 'seller-dashboard',
+                props: {},
+                events: {
+                    'item-clicked': 'onItemClicked',
+                    'add-to-cart': 'onAddToCart'
+                }
+            }
+        ],
+        basePath: '/components/',
+        debug: process.env.NODE_ENV === 'development',
+        autoLoad: true,
+        containerId: 'buyer-dashboard-container',
+        containerClass: 'animate-slideInRight',
+        loadingText: 'Loading items...',
+        customHandlers: {
+            onItemClicked: (e) => {
+                console.log('Item clicked:', e.detail);
+                window.location.href = `/items/${e.detail.id}`;
+            },
+            onAddToCart: (e) => {
+                console.log('Add to cart:', e.detail);
+                showToast('Item added to cart! 🛒', 'success');
+            }
+        }
+    }) %>
+    
+    <script>
+        function showToast(message, type = 'success') {
+            const toast = document.createElement('div');
+            toast.className = `fixed bottom-4 right-4 z-50 bg-white rounded-xl shadow-2xl p-4 flex items-center gap-3 animate-slideUp`;
+            toast.innerHTML = `
+                <div class="text-2xl">${type === 'success' ? '✅' : 'ℹ️'}</div>
+                <div class="flex-1">
+                    <p class="text-gray-900 font-medium">${message}</p>
+                </div>
+                <button onclick="this.parentElement.remove()" class="text-gray-400 hover:text-gray-600">✕</button>
+            `;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+        
+        // Add slideUp animation if not present
+        if (!document.querySelector('#animation-styles')) {
+            const style = document.createElement('style');
+            style.id = 'animation-styles';
+            style.textContent = `
+                @keyframes slideUp {
+                    from { opacity: 0; transform: translateY(20px); }
+                    to { opacity: 1; transform: translateY(0); }
+                }
+                .animate-slideUp {
+                    animation: slideUp 0.3s ease-out;
+                }
+            `;
+            document.head.appendChild(style);
+        }
+    </script>
+</body>
+</html>

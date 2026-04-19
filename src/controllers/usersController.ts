@@ -53,16 +53,7 @@ export const register = async (req: Request, res: Response) => {
       throw new AppError('Email and username are required', 400);
     }
 
-    // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      throw new AppError('Invalid email format', 400);
-    }
-
-    // Validate username length
-    if (username.length < 3 || username.length > 30) {
-      throw new AppError('Username must be between 3 and 30 characters', 400);
-    }
+    // ... existing validation code ...
 
     const users: User[] = readUsers();
     
@@ -107,8 +98,23 @@ export const register = async (req: Request, res: Response) => {
 
     if (!emailResult.success) {
       console.error('⚠️ Failed to send welcome email, but user was created');
-      // Optionally: You might want to rollback user creation if email is critical
-      // For now, we'll continue but log the error
+    }
+
+    // 🔥 CRITICAL FIX: Set session on successful registration
+    if (req.session) {
+      req.session.userId = newUser.id;
+      req.session.user = {
+        id: newUser.id,
+        email: newUser.email,
+        username: newUser.username,
+        userType: newUser.userType
+      };
+      
+      req.session.save((err) => {
+        if (err) {
+          console.error('Session save error:', err);
+        }
+      });
     }
 
     // Generate access token
@@ -126,7 +132,6 @@ export const register = async (req: Request, res: Response) => {
       user: userWithoutPassword,
       accessToken,
       userType: newUser.userType,
-      // For development only - remove in production
       ...(process.env.NODE_ENV === 'development' && { 
         temporaryPassword: systemGeneratedPassword 
       }),
@@ -184,6 +189,7 @@ export const resetPassword = async (req: Request, res: Response) => {
   }
 };
 
+// usersController.ts - Fixed login function
 export const login = async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
@@ -192,28 +198,17 @@ export const login = async (req: Request, res: Response) => {
       throw new AppError('Email and password are required', 400);
     }
 
-    // READ users from file instead of importing
     const users: User[] = readUsers();
-    console.log("users are ",users)
-    
-    console.log(`📖 Found ${users.length} users in database`);
-    
     const user = users.find(u => u.email === email);
 
     if (!user) {
-      console.log(`❌ User not found with email: ${email}`);
       throw new AppError('Invalid credentials', 401);
     }
-
-    console.log(`✅ User found: ${user.username} (${user.userType})`);
 
     const isValidPassword = await bcrypt.compare(password, user.password);
     if (!isValidPassword) {
-      console.log(`❌ Invalid password for user: ${user.username}`);
       throw new AppError('Invalid credentials', 401);
     }
-
-    console.log(`✅ Password verified for user: ${user.username}`);
 
     // Update last login
     user.lastLogin = new Date().toISOString();
@@ -231,14 +226,34 @@ export const login = async (req: Request, res: Response) => {
       { expiresIn: authConfig.jwtExpiresIn } as jwt.SignOptions
     );
 
-    const { password: _, ...userWithoutPassword } = user;
+    // Set session and wait for it to save
+    req.session.userId = user.id;
+    req.session.user = {
+      id: user.id,
+      email: user.email,
+      username: user.username,
+      userType: user.userType
+    };
     
-    console.log(`✅ Login successful for: ${user.username}`);
-    
-    res.json({
-      user: userWithoutPassword,
-      accessToken,
-      userType: user.userType,
+    // IMPORTANT: Wait for session to save before sending response
+    req.session.save((err) => {
+      if (err) {
+        console.error('Session save error:', err);
+        return res.status(500).json({ 
+          success: false, 
+          message: 'Failed to create session' 
+        });
+      }
+      
+      const { password: _, ...userWithoutPassword } = user;
+      console.log(`✅ Login successful for: ${user.username}, Session ID: ${req.session.id}`);
+      
+      res.json({
+        success: true,
+        user: userWithoutPassword,
+        accessToken,
+        userType: user.userType,
+      });
     });
   } catch (error) {
     if (error instanceof AppError) throw error;

@@ -1,54 +1,24 @@
-const API_URL = 'http://localhost:3000/api';
+// AuthService.ts
 export class AuthService {
-    static async register(email, username, userType = 'buyer') {
-        const response = await fetch(`${API_URL}/users/register`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, username, userType })
-        });
-        if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.error || 'Registration failed');
-        }
-        const data = await response.json();
-        this.setSession(data.user, data.accessToken);
-        return data;
-    }
     static async login(email, password) {
-        const response = await fetch(`${API_URL}/users/login`, {
+        const response = await fetch('/api/users/login', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, password })
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ email, password }),
+            credentials: 'include' // Important: Include cookies/session
         });
         if (!response.ok) {
             const error = await response.json();
-            throw new Error(error.error || 'Login failed');
+            throw new Error(error.message || 'Login failed');
         }
         const data = await response.json();
-        this.setSession(data.user, data.accessToken);
-        return data;
-    }
-    static setSession(user, token) {
-        this.currentUser = user;
-        this.accessToken = token;
-        localStorage.setItem('user', JSON.stringify(user));
-        localStorage.setItem('accessToken', token);
-    }
-    static logout() {
-        this.currentUser = null;
-        this.accessToken = null;
-        localStorage.removeItem('user');
-        localStorage.removeItem('accessToken');
-    }
-    static getCurrentUser() {
-        if (this.currentUser)
-            return this.currentUser;
-        const stored = localStorage.getItem('user');
-        if (stored) {
-            this.currentUser = JSON.parse(stored);
-            return this.currentUser;
+        // Store token if needed for API calls
+        if (data.accessToken) {
+            localStorage.setItem('accessToken', data.accessToken);
         }
-        return null;
+        return data;
     }
     static getAccessToken() {
         if (this.accessToken)
@@ -60,21 +30,48 @@ export class AuthService {
         }
         return null;
     }
-    static isAuthenticated() {
-        return this.getCurrentUser() !== null && this.getAccessToken() !== null;
+    static getCurrentUser() {
+        if (this.currentUser)
+            return this.currentUser;
+        const stored = localStorage.getItem('user');
+        if (stored) {
+            this.currentUser = JSON.parse(stored);
+            return this.currentUser;
+        }
+        return null;
     }
-    static async getProfile() {
-        const token = this.getAccessToken();
-        const response = await fetch(`${API_URL}/users/profile`, {
+    static async register(email, fullName, userType) {
+        // Generate username from full name
+        const username = fullName
+            .toLowerCase()
+            .trim()
+            .replace(/[^a-z0-9\s]/g, '')
+            .replace(/\s+/g, '.');
+        const response = await fetch('/api/users/register', {
+            method: 'POST',
             headers: {
-                'Authorization': `Bearer ${token}`
-            }
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ email, username, userType }),
+            credentials: 'include' // Important: Include cookies/session
         });
         if (!response.ok) {
-            throw new Error('Failed to get profile');
+            const error = await response.json();
+            throw new Error(error.message || 'Registration failed');
         }
-        return response.json();
+        const data = await response.json();
+        // Store token if needed for API calls
+        if (data.accessToken) {
+            localStorage.setItem('accessToken', data.accessToken);
+        }
+        return data;
+    }
+    static async logout() {
+        const response = await fetch('/logout', {
+            method: 'GET',
+            credentials: 'include'
+        });
+        localStorage.removeItem('accessToken');
+        return response;
     }
 }
-AuthService.currentUser = null;
-AuthService.accessToken = null;

@@ -1,3 +1,5 @@
+// main server file - CORRECTED ORDER
+import 'express-session';
 import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
@@ -5,18 +7,36 @@ import path from 'path';
 import session from 'express-session';
 import FileStore from 'session-file-store';
 
+// Extend session data interface BEFORE using it
+declare module 'express-session' {
+  interface SessionData {
+    userId: string;
+    user: {
+      id: string;
+      email: string;
+      username: string;
+      userType: string;
+    };
+  }
+}
+
+// Extend Express Request type
+interface CustomRequest extends Request {
+  session: session.Session & Partial<session.SessionData>;
+}
+
+// Rest of imports
 import { fileURLToPath } from 'url';
 import { createServer } from 'http';
 import { requestLogger } from './middleware/logger.middleware.js';
 import { errorHandler } from './middleware/error.middleware.js';
-
 import itemsRouter from './routes/items.js';
 import usersRouter from './routes/users.js';
 import messagesRouter from './routes/messages.js';
 import { setupWebSocketServer } from './webserver.js';
 import { getCurrentUser } from './utils/auth.js';
 
-// Load environment variables from .env file
+// Load environment variables
 dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
@@ -29,31 +49,58 @@ const HOST = '0.0.0.0';
 // Initialize file session store
 const FileStoreSession = FileStore(session);
 
-// Session Configuration with file storage
+// Create sessions directory
+import fs from 'fs';
+const sessionsDir = path.join(__dirname, '../sessions');
+if (!fs.existsSync(sessionsDir)) {
+  fs.mkdirSync(sessionsDir, { recursive: true });
+}
+
+// MIDDLEWARE - Order matters!
+
+// 1. CORS (only once)
+app.use(cors({
+  origin: true,
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
+// 2. JSON parsing
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// 3. Session middleware
 app.use(session({
   secret: process.env.SESSION_SECRET || 'your-secret-key-change-in-production',
   resave: false,
   saveUninitialized: false,
   store: new FileStoreSession({
-    path: path.join(__dirname, '../sessions'),
-    ttl: 7 * 24 * 60 * 60, // 7 days
-    reapInterval: 60 * 60, // Check for expired sessions every hour
+    path: sessionsDir,
+    ttl: 7 * 24 * 60 * 60,
+    reapInterval: 60 * 60,
     retries: 3,
-    logFn: function() {} // Disable logging
+    logFn: function() {}
   }),
   cookie: {
     secure: process.env.NODE_ENV === 'production',
     httpOnly: true,
-    maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
-  }
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+    sameSite: 'lax',
+    ...(process.env.NODE_ENV !== 'production' && { secure: false })
+  },
+  name: 'bidnest.sid'
 }));
 
-// Extend Express Request type to include session
-interface CustomRequest extends Request {
-  session: session.Session & Partial<session.SessionData>;
-}
+// 4. Debug logging middleware
+app.use((req: CustomRequest, res: Response, next: NextFunction) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`);
+  console.log('Session ID:', req.session.id);
+  console.log('Session UserId:', req.session.userId);
+  next();
+});
 
-// Middleware to make user available in all templates
+// 5. User middleware (makes user available to templates)
 app.use(async (req: CustomRequest, res: Response, next: NextFunction) => {
   if (req.session.userId) {
     try {
@@ -71,18 +118,8 @@ app.use(async (req: CustomRequest, res: Response, next: NextFunction) => {
   next();
 });
 
-// Middleware
-app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+// 6. Request logger
 app.use(requestLogger);
-
-// Create sessions directory if it doesn't exist
-import fs from 'fs';
-const sessionsDir = path.join(__dirname, '../sessions');
-if (!fs.existsSync(sessionsDir)) {
-  fs.mkdirSync(sessionsDir, { recursive: true });
-}
 
 // Static files
 app.use(express.static(path.join(__dirname, '../public')));
@@ -95,14 +132,7 @@ app.set('views', [
   path.join(__dirname, '../src/views/components')
 ]);
 
-// Auth check middleware
-const redirectIfAuthenticated = (req: CustomRequest, res: Response, next: NextFunction) => {
-  if (req.session.userId) {
-    return res.redirect('/dashboard');
-  }
-  next();
-};
-
+// Auth middleware
 const requireAuth = (req: CustomRequest, res: Response, next: NextFunction) => {
   if (!req.session.userId) {
     return res.redirect('/login');
@@ -110,25 +140,43 @@ const requireAuth = (req: CustomRequest, res: Response, next: NextFunction) => {
   next();
 };
 
-// Routes
-app.get('/', async (req: CustomRequest, res: Response) => {
-  // If user is logged in, redirect to dashboard
+const redirectIfAuthenticated = (req: CustomRequest, res: Response, next: NextFunction) => {
   if (req.session.userId) {
-    return res.redirect('/dashboard');
+    return res.redirect('/');
   }
-  
+  next();
+};
+
+// ROUTES
+
+// Home page - serves different content based on user type
+app.get('/', async (req: CustomRequest, res: Response) => {
   try {
-    // Use absolute URL for internal API calls
     const apiUrl = process.env.API_URL || `http://localhost:${PORT}`;
     const response = await fetch(`${apiUrl}/api/items`);
     const data = await response.json();
     const listings = data.items || data || [];
     
+    // If user is logged in, pass user data to template
+    if (req.session.userId && res.locals.user) {
+      return res.render('index', {
+        title: 'BidNest - Social Marketplace for Collectibles',
+        description: 'Buy, sell, and negotiate prices on collectible items',
+        listings: listings,
+        listingsCount: listings.length,
+        user: res.locals.user,
+        userType: res.locals.user.userType
+      });
+    }
+    
+    // Not logged in
     res.render('index', {
       title: 'BidNest - Social Marketplace for Collectibles',
       description: 'Buy, sell, and negotiate prices on collectible items',
       listings: listings,
-      listingsCount: listings.length
+      listingsCount: listings.length,
+      user: null,
+      userType: null
     });
   } catch (error) {
     console.error('Error fetching listings:', error);
@@ -136,20 +184,64 @@ app.get('/', async (req: CustomRequest, res: Response) => {
       title: 'BidNest - Social Marketplace for Collectibles',
       description: 'Buy, sell, and negotiate prices on collectible items',
       listings: [],
-      listingsCount: 0
+      listingsCount: 0,
+      user: res.locals.user || null,
+      userType: res.locals.user?.userType || null
     });
   }
 });
 
+// Dashboard - role-based redirect
 app.get('/dashboard', requireAuth, (req: CustomRequest, res: Response) => {
+  const user = res.locals.user;
+  
+  // Redirect based on user type
+  if (user?.userType === 'seller') {
+    return res.redirect('/seller/dashboard');
+  } else if (user?.userType === 'buyer') {
+    return res.redirect('/buyer/dashboard');
+  }
+  
+  // Default fallback
   res.render('dashboard', {
     title: 'Dashboard - BidNest',
-    user: res.locals.user
+    user: user
   });
 });
 
+// Seller dashboard
+app.get('/seller/dashboard', requireAuth, (req: CustomRequest, res: Response) => {
+  const user = res.locals.user;
+  
+  if (user?.userType !== 'seller') {
+    return res.redirect('/dashboard');
+  }
+  
+  res.render('seller-dashboard', {
+    title: 'Seller Dashboard - BidNest',
+    user: user,
+    userType: 'seller'
+  });
+});
+
+// Buyer dashboard
+app.get('/buyer/dashboard', requireAuth, (req: CustomRequest, res: Response) => {
+  const user = res.locals.user;
+  
+  if (user?.userType !== 'buyer') {
+    return res.redirect('/dashboard');
+  }
+  
+  res.render('buyer-dashboard', {
+    title: 'Buyer Dashboard - BidNest',
+    user: user,
+    userType: 'buyer'
+  });
+});
+
+// Login page
 app.get('/login', redirectIfAuthenticated, (req: CustomRequest, res: Response) => {
-  const redirectUrl = req.query.redirect || '/dashboard';
+  const redirectUrl = req.query.redirect || '/';
   
   res.render('login', {
     title: 'Login - BidNest',
@@ -161,17 +253,21 @@ app.get('/login', redirectIfAuthenticated, (req: CustomRequest, res: Response) =
     demoCredentials: {
       email: 'demo@bidnest.com',
       password: 'demo123'
-    }
+    },
+    user: null
   });
 });
 
+// Register page
 app.get('/register', redirectIfAuthenticated, (req: CustomRequest, res: Response) => {
   res.render('register', {
     title: 'Register - BidNest',
-    description: 'Create a new BidNest account'
+    description: 'Create a new BidNest account',
+    user: null
   });
 });
 
+// Logout
 app.get('/logout', (req: CustomRequest, res: Response) => {
   req.session.destroy((err) => {
     if (err) {
@@ -196,7 +292,7 @@ app.get('/api/health', (req: Request, res: Response) => {
   });
 });
 
-// Debug route to check session (remove in production)
+// Debug route
 if (process.env.NODE_ENV === 'development') {
   app.get('/debug/session', (req: CustomRequest, res: Response) => {
     res.json({
@@ -214,9 +310,8 @@ app.use(errorHandler);
 const server = createServer(app);
 setupWebSocketServer(server);
 
-// Bind to 0.0.0.0 to ensure Render can detect the port
 server.listen(PORT, HOST, () => {
   console.log(`🚀 Server running on http://${HOST}:${PORT}`);
   console.log(`🔌 WebSocket server ready for real-time chat`);
-  console.log(`💾 Session storage: ${path.join(__dirname, '../sessions')}`);
+  console.log(`💾 Session storage: ${sessionsDir}`);
 });

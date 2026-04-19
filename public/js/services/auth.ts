@@ -1,60 +1,46 @@
-import { User, LoginResponse } from '../types/index.js';
+import { User } from "../types";
 
-const API_URL = 'http://localhost:3000/api';
-
+// AuthService.ts
 export class AuthService {
-  private static currentUser: User | null = null;
-  private static accessToken: string | null = null;
-
-  static async register(email: string, username: string, userType: 'buyer' | 'seller' = 'buyer'): Promise<LoginResponse> {
-    const response = await fetch(`${API_URL}/users/register`, {
+  static currentUser: any;
+  static accessToken: any;
+  static async login(email: string, password: string) {
+    const response = await fetch('/api/users/login', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, username, userType })
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email, password }),
+      credentials: 'include' // Important: Include cookies/session
     });
 
     if (!response.ok) {
       const error = await response.json();
-      throw new Error(error.error || 'Registration failed');
+      throw new Error(error.message || 'Login failed');
     }
 
     const data = await response.json();
-    this.setSession(data.user, data.accessToken);
-    return data;
-  }
-
-  static async login(email: string, password: string): Promise<LoginResponse> {
-    const response = await fetch(`${API_URL}/users/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password })
-    });
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || 'Login failed');
+    
+    // Store token if needed for API calls
+    if (data.accessToken) {
+      localStorage.setItem('accessToken', data.accessToken);
     }
-
-    const data = await response.json();
-    this.setSession(data.user, data.accessToken);
+    
     return data;
   }
 
-  private static setSession(user: User, token: string): void {
-    this.currentUser = user;
-    this.accessToken = token;
-    localStorage.setItem('user', JSON.stringify(user));
-    localStorage.setItem('accessToken', token);
+    static getAccessToken(): string | null {
+    if (this.accessToken) return this.accessToken;
+    
+    const stored = localStorage.getItem('accessToken');
+    if (stored) {
+      this.accessToken = stored;
+      return this.accessToken;
+    }
+    return null;
   }
-
-  static logout(): void {
-    this.currentUser = null;
-    this.accessToken = null;
-    localStorage.removeItem('user');
-    localStorage.removeItem('accessToken');
-  }
-
-  static getCurrentUser(): User | null {
+  
+   static getCurrentUser(): User | null {
     if (this.currentUser) return this.currentUser;
     
     const stored = localStorage.getItem('user');
@@ -65,33 +51,45 @@ export class AuthService {
     return null;
   }
 
-  static getAccessToken(): string | null {
-    if (this.accessToken) return this.accessToken;
-    
-    const stored = localStorage.getItem('accessToken');
-    if (stored) {
-      this.accessToken = stored;
-      return this.accessToken;
-    }
-    return null;
-  }
+  static async register(email: string, fullName: string, userType: 'buyer' | 'seller') {
+    // Generate username from full name
+    const username = fullName
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9\s]/g, '')
+      .replace(/\s+/g, '.');
 
-  static isAuthenticated(): boolean {
-    return this.getCurrentUser() !== null && this.getAccessToken() !== null;
-  }
-
-  static async getProfile(): Promise<User> {
-    const token = this.getAccessToken();
-    const response = await fetch(`${API_URL}/users/profile`, {
+    const response = await fetch('/api/users/register', {
+      method: 'POST',
       headers: {
-        'Authorization': `Bearer ${token}`
-      }
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email, username, userType }),
+      credentials: 'include' // Important: Include cookies/session
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Registration failed');
+    }
+
+    const data = await response.json();
+    
+    // Store token if needed for API calls
+    if (data.accessToken) {
+      localStorage.setItem('accessToken', data.accessToken);
+    }
+    
+    return data;
+  }
+
+  static async logout() {
+    const response = await fetch('/logout', {
+      method: 'GET',
+      credentials: 'include'
     });
     
-    if (!response.ok) {
-      throw new Error('Failed to get profile');
-    }
-    
-    return response.json();
+    localStorage.removeItem('accessToken');
+    return response;
   }
 }

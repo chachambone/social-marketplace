@@ -50,16 +50,18 @@ let LoginForm = class LoginForm extends LitElement {
             else {
                 response = await AuthService.register(this.email, this.fullName, this.userType);
             }
+            // Dispatch success event
             this.dispatchEvent(new CustomEvent('login-success', {
                 detail: response.user,
                 bubbles: true,
                 composed: true
             }));
+            // 🔥 Force page reload to reflect session state
+            // This will trigger the server-side redirect logic
+            window.location.href = '/';
         }
         catch (err) {
             this.error = err.message;
-        }
-        finally {
             this.isLoading = false;
         }
     }
@@ -75,7 +77,7 @@ let LoginForm = class LoginForm extends LitElement {
 
                 <p class="text-gray-500 text-sm mt-1">${this.isLoginMode ? html `Sign in to continue` : 'Sign up to get started'}</p>
 
-                
+
         </div>
 
         

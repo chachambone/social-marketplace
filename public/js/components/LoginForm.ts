@@ -75,30 +75,35 @@ export class LoginForm extends LitElement {
       .replace(/\s+/g, '.');
   }
 
-  private async handleSubmit(e: Event) {
-    e.preventDefault();
-    this.error = '';
-    this.isLoading = true;
+private async handleSubmit(e: Event) {
+  e.preventDefault();
+  this.error = '';
+  this.isLoading = true;
 
-    try {
-      let response;
-      if (this.isLoginMode) {
-        response = await AuthService.login(this.email, this.password);
-      } else {
-        response = await AuthService.register(this.email, this.fullName,this.userType);
-      }
-      
-      this.dispatchEvent(new CustomEvent('login-success', { 
-        detail: response.user, 
-        bubbles: true, 
-        composed: true 
-      }));
-    } catch (err: any) {
-      this.error = err.message;
-    } finally {
-      this.isLoading = false;
+  try {
+    let response;
+    if (this.isLoginMode) {
+      response = await AuthService.login(this.email, this.password);
+    } else {
+      response = await AuthService.register(this.email, this.fullName, this.userType);
     }
+    
+    // Dispatch success event
+    this.dispatchEvent(new CustomEvent('login-success', { 
+      detail: response.user, 
+      bubbles: true, 
+      composed: true 
+    }));
+    
+    // 🔥 Force page reload to reflect session state
+    // This will trigger the server-side redirect logic
+    window.location.href = '/';
+    
+  } catch (err: any) {
+    this.error = err.message;
+    this.isLoading = false;
   }
+}
 
   render() {
     return html`
@@ -112,7 +117,7 @@ export class LoginForm extends LitElement {
 
                 <p class="text-gray-500 text-sm mt-1">${this.isLoginMode ? html `Sign in to continue` : 'Sign up to get started'}</p>
 
-                
+
         </div>
 
         

@@ -1,3 +1,4 @@
+// SellerDashboard.ts - Fixed version with working button and form
 import { LitElement, html, css } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { AuthService } from '../services/auth.js';
@@ -33,6 +34,11 @@ export class SellerDashboard extends LitElement {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
+    }
+
+    :host {
+      display: block;
+      width: 100%;
     }
 
     .container {
@@ -126,6 +132,8 @@ export class SellerDashboard extends LitElement {
       justify-content: space-between;
       align-items: center;
       margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+      gap: 1rem;
     }
 
     .section-title {
@@ -146,6 +154,7 @@ export class SellerDashboard extends LitElement {
       font-weight: 600;
       cursor: pointer;
       transition: all 0.2s;
+      font-size: 0.875rem;
     }
 
     .btn-primary:hover {
@@ -218,6 +227,7 @@ export class SellerDashboard extends LitElement {
     .form-header {
       padding: 1.5rem;
       border-bottom: 1px solid #f3f4f6;
+      background: #fef3c7;
     }
 
     .form-title {
@@ -687,7 +697,7 @@ export class SellerDashboard extends LitElement {
 
     /* Helper Classes */
     .hidden {
-      display: none;
+      display: none !important;
     }
 
     .inline-block {
@@ -744,7 +754,7 @@ export class SellerDashboard extends LitElement {
     try {
       this.loading = true;
       const token = AuthService.getAccessToken();
-      const response = await fetch('http://localhost:3000/api/items', {
+      const response = await fetch('/api/items', {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -769,7 +779,7 @@ export class SellerDashboard extends LitElement {
     
     try {
       const token = AuthService.getAccessToken();
-      const response = await fetch(`http://localhost:3000/api/chats/seller/${this.sellerId}`, {
+      const response = await fetch(`/api/chats/seller/${this.sellerId}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (response.ok) {
@@ -875,7 +885,7 @@ export class SellerDashboard extends LitElement {
     this.loading = true;
     
     try {
-      const response = await fetch('http://localhost:3000/api/items', {
+      const response = await fetch('/api/items', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -903,6 +913,12 @@ export class SellerDashboard extends LitElement {
         this.showAddItem = false;
         this.resetForm();
         await this.loadMyItems();
+        
+        // Dispatch event
+        this.dispatchEvent(new CustomEvent('item-created', { 
+          detail: { item: await response.json() },
+          bubbles: true 
+        }));
       } else {
         throw new Error('Failed to create item');
       }
@@ -922,7 +938,7 @@ export class SellerDashboard extends LitElement {
     this.loading = true;
     
     try {
-      const response = await fetch(`http://localhost:3000/api/items/${this.editingItem.id}`, {
+      const response = await fetch(`/api/items/${this.editingItem.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -948,6 +964,11 @@ export class SellerDashboard extends LitElement {
         this.editingItem = null;
         this.resetForm();
         await this.loadMyItems();
+        
+        this.dispatchEvent(new CustomEvent('item-updated', { 
+          detail: { item: await response.json() },
+          bubbles: true 
+        }));
       } else {
         throw new Error('Failed to update item');
       }
@@ -963,7 +984,7 @@ export class SellerDashboard extends LitElement {
     if (confirm('Are you sure you want to delete this item? This action cannot be undone.')) {
       const token = AuthService.getAccessToken();
       try {
-        const response = await fetch(`http://localhost:3000/api/items/${itemId}`, {
+        const response = await fetch(`/api/items/${itemId}`, {
           method: 'DELETE',
           headers: { 'Authorization': `Bearer ${token}` }
         });
@@ -971,6 +992,11 @@ export class SellerDashboard extends LitElement {
         if (response.ok) {
           this.showSuccessMessage('Item deleted successfully!');
           await this.loadMyItems();
+          
+          this.dispatchEvent(new CustomEvent('item-deleted', { 
+            detail: { itemId },
+            bubbles: true 
+          }));
         }
       } catch (error) {
         console.error('Error deleting item:', error);
@@ -994,6 +1020,7 @@ export class SellerDashboard extends LitElement {
       gallery: (item as any).gallery || [item.image]
     };
     this.showEditItem = true;
+    this.showAddItem = false;
     this.requestUpdate();
   }
 
@@ -1020,6 +1047,14 @@ export class SellerDashboard extends LitElement {
     setTimeout(() => {
       this.showSuccess = false;
     }, 3000);
+  }
+
+  private toggleAddItem() {
+    this.showAddItem = !this.showAddItem;
+    this.showEditItem = false;
+    this.editingItem = null;
+    this.resetForm();
+    this.requestUpdate();
   }
 
   private formatPrice(price: number) {
@@ -1104,7 +1139,7 @@ export class SellerDashboard extends LitElement {
           <!-- Action Bar -->
           <div class="action-bar">
             <h2 class="section-title">My Products</h2>
-            <button @click=${() => { this.showAddItem = !this.showAddItem; this.showEditItem = false; this.resetForm(); }} class="btn-primary">
+            <button @click=${this.toggleAddItem} class="btn-primary">
               <span>+</span>
               ${this.showAddItem ? 'Cancel' : 'Add New Item'}
             </button>
@@ -1217,7 +1252,7 @@ export class SellerDashboard extends LitElement {
                 <div class="form-group">
                   <label class="form-label">Photos (${this.newItem.gallery.length}/10)</label>
                   
-                  <div class="upload-area">
+                  <div class="upload-area" @click=${() => (this.renderRoot.querySelector('#file-upload') as HTMLInputElement)?.click()}>
                     <input
                       type="file"
                       multiple
@@ -1242,14 +1277,20 @@ export class SellerDashboard extends LitElement {
                     <div class="upload-buttons">
                       <button
                         type="button"
-                        @click=${() => (document.getElementById('file-upload') as HTMLInputElement)?.click()}
+                        @click=${(e: Event) => {
+                          e.stopPropagation();
+                          (this.renderRoot.querySelector('#file-upload') as HTMLInputElement)?.click();
+                        }}
                         class="btn-upload"
                       >
                         Select Files
                       </button>
                       <button
                         type="button"
-                        @click=${this.handleImageUrlAdd}
+                        @click=${(e: Event) => {
+                          e.stopPropagation();
+                          this.handleImageUrlAdd();
+                        }}
                         class="btn-url"
                       >
                         Add URL
@@ -1363,7 +1404,7 @@ export class SellerDashboard extends LitElement {
                         ✏️ Edit
                       </button>
                       <button @click=${() => this.deleteItem(item.id)} class="btn-danger">
-                        🗑️
+                        🗑️ Delete
                       </button>
                     </div>
                   </div>
@@ -1371,7 +1412,7 @@ export class SellerDashboard extends LitElement {
               `)}
             </div>
             
-            ${this.myItems.length === 0 && !this.showAddItem ? html`
+            ${this.myItems.length === 0 && !this.showAddItem && !this.loading ? html`
               <div class="empty-state">
                 <div class="empty-icon">📦</div>
                 <p class="empty-title">No items listed yet</p>
