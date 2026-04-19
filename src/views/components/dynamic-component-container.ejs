@@ -1,0 +1,223 @@
+<!-- src/views/components/dynamic-component-container.ejs -->
+<div id="component-container" class="<%= containerClass || 'animate-slideInRight' %>">
+    <!-- Components will be dynamically loaded here -->
+    <div id="loading-indicator" class="text-center py-8">
+        <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[#F3A712]"></div>
+        <p class="text-gray-500 mt-3 text-sm"><%= loadingText || 'Loading...' %></p>
+    </div>
+</div>
+
+<!-- Toast Container -->
+<div id="toast-container" class="fixed bottom-4 right-4 z-50 space-y-2"></div>
+
+<script>
+    // Toast notification helper
+    function showToast(message, type = 'info') {
+        const container = document.getElementById('toast-container');
+        if (!container) return;
+        
+        const toast = document.createElement('div');
+        toast.className = `toast-slide-up px-4 py-3 rounded-lg shadow-lg text-white text-sm flex items-center gap-2 ${
+            type === 'error' ? 'bg-red-500' : type === 'success' ? 'bg-green-500' : 'bg-blue-500'
+        }`;
+        
+        const icon = type === 'error' ? '❌' : type === 'success' ? '✅' : 'ℹ️';
+        toast.innerHTML = `${icon} ${message}`;
+        
+        container.appendChild(toast);
+        
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
+    }
+    
+    // Dynamic component loader
+    async function loadComponents() {
+        const container = document.getElementById('component-container');
+        const loadingIndicator = document.getElementById('loading-indicator');
+        
+        if (!container) return;
+        
+        try {
+            // Get components from data attribute or global variable
+            let components = window.componentConfig || null;
+            
+            if (!components && typeof componentData !== 'undefined') {
+                components = componentData;
+            }
+            
+            if (!components || components.length === 0) {
+                if (loadingIndicator) {
+                    loadingIndicator.innerHTML = '<p class="text-gray-500 text-sm">No components to load</p>';
+                }
+                return;
+            }
+            
+            // Import and mount each component
+            for (const component of components) {
+                try {
+                    // Try multiple possible paths for the component
+                    let module = null;
+                    const possiblePaths = [
+                        `/dist/components/${component.fileName}`,
+                        `/dist/${component.fileName}`,
+                        `/components/${component.fileName}`,
+                        `/${component.fileName}`,
+                        `${component.fileName}`
+                    ];
+                    
+                    for (const path of possiblePaths) {
+                        try {
+                            module = await import(path);
+                            if (module && module[component.componentName]) {
+                                console.log(`✅ Loaded component from ${path}`);
+                                break;
+                            }
+                        } catch (err) {
+                            // Continue trying other paths
+                            continue;
+                        }
+                    }
+                    
+                    if (!module || !module[component.componentName]) {
+                        throw new Error(`Component ${component.componentName} not found in any path`);
+                    }
+                    
+                    const ComponentClass = module[component.componentName];
+                    
+                    // Check if component is already defined
+                    const componentTag = component.customName ? component.customName.toLowerCase() : component.componentName.toLowerCase();
+                    if (!customElements.get(componentTag)) {
+                        customElements.define(componentTag, ComponentClass);
+                    }
+                    
+                    // Create component instance
+                    const element = document.createElement(componentTag);
+                    
+                    // Pass props to component if specified
+                    if (component.props) {
+                        Object.keys(component.props).forEach(key => {
+                            element[key] = component.props[key];
+                        });
+                    }
+                    
+                    // Add event listeners if specified
+                    if (component.events) {
+                        Object.keys(component.events).forEach(eventName => {
+                            const handlerName = component.events[eventName];
+                            if (window[handlerName]) {
+                                element.addEventListener(eventName, window[handlerName]);
+                            }
+                        });
+                    }
+                    
+                    // Default auth event listeners
+                    element.addEventListener('login-success', (e) => {
+                        showToast('Login successful! Redirecting...', 'success');
+                        setTimeout(() => {
+                            const redirectUrl = new URLSearchParams(window.location.search).get('redirect') || '/';
+                            window.location.href = redirectUrl;
+                        }, 1000);
+                    });
+                    
+                    element.addEventListener('login-error', (e) => {
+                        showToast(e.detail.message || 'Login failed. Please try again.', 'error');
+                    });
+                    
+                    element.addEventListener('register-success', (e) => {
+                        showToast('Account created successfully! Please login.', 'success');
+                        if (element.switchToLogin) {
+                            element.switchToLogin();
+                        }
+                    });
+                    
+                    element.addEventListener('register-error', (e) => {
+                        showToast(e.detail.message || 'Registration failed. Please try again.', 'error');
+                    });
+                    
+                    // Clear loading indicator and append component
+                    if (loadingIndicator) {
+                        loadingIndicator.remove();
+                    }
+                    container.innerHTML = '';
+                    container.appendChild(element);
+                    
+                    // Dispatch component loaded event
+                    window.dispatchEvent(new CustomEvent('component-loaded', { 
+                        detail: { component: component.componentName, element }
+                    }));
+                    
+                } catch (err) {
+                    console.error(`Failed to load component ${component.componentName}:`, err);
+                    showToast(`Failed to load ${component.componentName}`, 'error');
+                    if (loadingIndicator) {
+                        loadingIndicator.innerHTML = `
+                            <div class="text-center py-8">
+                                <div class="text-4xl mb-2">⚠️</div>
+                                <p class="text-red-500 text-sm">Failed to load component: ${component.componentName}</p>
+                                <p class="text-gray-500 text-xs mt-2">${err.message}</p>
+                                <button onclick="location.reload()" class="mt-3 text-sm text-blue-500 hover:text-blue-600">
+                                    Retry
+                                </button>
+                            </div>
+                        `;
+                    }
+                }
+            }
+            
+        } catch (error) {
+            console.error('Error loading components:', error);
+            if (loadingIndicator) {
+                loadingIndicator.innerHTML = `
+                    <div class="text-center py-8">
+                        <div class="text-4xl mb-2">🔌</div>
+                        <p class="text-red-500 text-sm">Connection error. Please check your network.</p>
+                        <button onclick="location.reload()" class="mt-3 text-sm text-blue-500 hover:text-blue-600">
+                            Retry
+                        </button>
+                    </div>
+                `;
+            }
+        }
+    }
+    
+    // Handle redirect parameter in URL
+    function handleRedirect() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const redirect = urlParams.get('redirect');
+        if (redirect) {
+            sessionStorage.setItem('loginRedirect', redirect);
+        }
+    }
+    
+    // Initialize component loading
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => {
+            handleRedirect();
+            loadComponents();
+        });
+    } else {
+        handleRedirect();
+        loadComponents();
+    }
+    
+    // Handle dark mode from localStorage
+    const savedDarkMode = localStorage.getItem('bidnest_darkMode');
+    if (savedDarkMode === 'true') {
+        document.body.classList.add('dark-mode');
+    }
+    
+    // Listen for dark mode changes
+    window.addEventListener('darkmode-changed', (e) => {
+        if (e.detail.isDarkMode) {
+            document.body.classList.add('dark-mode');
+        } else {
+            document.body.classList.remove('dark-mode');
+        }
+    });
+    
+    // Expose loadComponents globally for dynamic reloading
+    window.loadComponents = loadComponents;
+    window.showToast = showToast;
+</script>

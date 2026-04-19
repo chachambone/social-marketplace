@@ -1,6 +1,6 @@
 import { WebSocketServer, WebSocket } from 'ws';
 import { Server } from 'http';
-import { saveMessage, getMessagesByItemId, ChatMessage } from './utils/fileHelpers';
+import { saveMessage, getMessagesByItemId, ChatMessage } from './utils/fileHelpers.js';
 
 interface WebSocketMessage {
   type: 'message' | 'bid';

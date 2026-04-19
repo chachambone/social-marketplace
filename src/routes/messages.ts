@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
-import { authenticateToken } from '../middleware/auth.middleware';
-import { getMessagesByItemId } from '../utils/fileHelpers';
+import { authenticateToken } from '../middleware/auth.middleware.js';
+import { getMessagesByItemId } from '../utils/fileHelpers.js';
 
 const router = Router();
 

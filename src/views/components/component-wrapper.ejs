@@ -1,0 +1,23 @@
+<!-- src/views/components/component-wrapper.ejs -->
+<div class="<%= wrapperClass || 'w-full' %>">
+    <% if (title) { %>
+        <h2 class="<%= titleClass || 'text-2xl font-bold mb-4' %>"><%= title %></h2>
+    <% } %>
+    
+    <% if (subtitle) { %>
+        <p class="<%= subtitleClass || 'text-gray-600 mb-6' %>"><%= subtitle %></p>
+    <% } %>
+    
+    <%- include('dynamic-component-container', { 
+        containerClass: containerClass || 'bg-white rounded-lg shadow-md p-6',
+        loadingText: loadingText || 'Loading component...'
+    }) %>
+    
+    <%- include('component-loader', { 
+        components: components,
+        basePath: basePath || '/',
+        debug: debug || false,
+        autoLoad: true,
+        customHandlers: customHandlers || {}
+    }) %>
+</div>

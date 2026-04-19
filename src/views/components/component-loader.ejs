@@ -1,0 +1,30 @@
+<!-- src/views/components/component-loader.ejs -->
+<script>
+    // Component configuration
+    window.componentConfig = <%- JSON.stringify(components || []) %>;
+    
+    // Additional component settings
+    window.componentSettings = {
+        basePath: '<%= basePath || "/" %>',
+        debug: <%= debug || false %>,
+        autoLoad: <%= autoLoad !== false %>
+    };
+    
+    // Optional: Custom event handlers
+    <% if (typeof customHandlers !== 'undefined') { %>
+        Object.assign(window, <%- JSON.stringify(customHandlers) %>);
+    <% } %>
+</script>
+
+<!-- Import styles if needed -->
+<% if (typeof styles !== 'undefined' && styles.length) { %>
+    <% styles.forEach(style => { %>
+        <link rel="stylesheet" href="<%= style %>">
+    <% }); %>
+<% } %>
+
+<!-- Include the dynamic component container -->
+<%- include('dynamic-component-container', { 
+    containerClass: containerClass,
+    loadingText: loadingText 
+}) %>
