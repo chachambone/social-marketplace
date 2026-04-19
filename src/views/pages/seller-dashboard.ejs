@@ -65,7 +65,7 @@
     <!-- Include Navbar -->
     <%- include('../components/navbar', { 
         user: user,
-        currentPath: currentPath || '/buyer/dashboard'
+        currentPath: currentPath || '/browser'
     }) %>
     
     <!-- Main Content -->
@@ -109,6 +109,25 @@
         }
     }) %>
     
+
+    <script type="module">
+        
+        // Also store user data in localStorage for the component to access
+        const userData = {
+            id: '<%= user?.id %>',
+            name: '<%= user?.name || user?.username %>',
+            email: '<%= user?.email %>',
+            userType: '<%= user?.userType %>'
+        };
+        
+        if (userData.id && userData.id !== '') {
+            localStorage.setItem('user', JSON.stringify(userData));
+        }
+        
+        // Dispatch event that user is loaded
+        window.dispatchEvent(new CustomEvent('user-loaded', { detail: userData }));
+    </script>
+
     <script>
         function showToast(message, type = 'success') {
             const toast = document.createElement('div');

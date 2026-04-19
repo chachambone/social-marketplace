@@ -1,4 +1,5 @@
 export interface User {
+  [x: string]: string;
   id: string;
   email: string;
   username: string;  // Changed from 'name' to 'username'

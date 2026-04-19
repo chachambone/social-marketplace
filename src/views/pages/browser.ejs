@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <meta name="description" content="<%= description || 'Browse and shop items on BidNest' %>">
+    
+    <!-- Import map for Lit -->
+    <script type="importmap">
+        {
+            "imports": {
+                "lit": "https://cdn.jsdelivr.net/npm/lit@3.2.1/index.js",
+                "lit/": "https://cdn.jsdelivr.net/npm/lit@3.2.1/",
+                "lit/decorators.js": "https://cdn.jsdelivr.net/npm/lit@3.2.1/decorators.js",
+                "lit-html": "https://cdn.jsdelivr.net/npm/lit-html@3.2.0/lit-html.js",
+                "lit-html/": "https://cdn.jsdelivr.net/npm/lit-html@3.2.0/",
+                "lit-element/lit-element.js": "https://cdn.jsdelivr.net/npm/lit-element@4.1.0/lit-element.js",
+                "@lit/reactive-element": "https://cdn.jsdelivr.net/npm/@lit/reactive-element@2.0.4/reactive-element.js",
+                "@lit/reactive-element/": "https://cdn.jsdelivr.net/npm/@lit/reactive-element@2.0.4/",
+                "lucide": "https://cdn.jsdelivr.net/npm/lucide@0.344.0/dist/umd/lucide.min.js"
+            }
+        }
+    </script>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <style>
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes slideInRight {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .animate-fadeIn {
+            animation: fadeIn 0.5s ease-out;
+        }
+        
+        .animate-slideInRight {
+            animation: slideInRight 0.5s ease-out;
+        }
+        
+        .animate-spin {
+            animation: spin 1s linear infinite;
+        }
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #F3A712;
+            border-radius: 10px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #F97316;
+        }
+        
+        /* Dark mode support */
+        .dark-mode {
+            background-color: #1a1a2e;
+            color: #eee;
+        }
+        
+        /* Loading skeleton */
+        .skeleton {
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+        }
+        
+        @keyframes loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen">
+    
+    
+        <%- include('../components/navbar', { user: user, currentPath: currentPath }) %>
+
+
+    <!-- Dynamic Component Container for Marketplace App -->
+    <div id="marketplace-app-container" class="min-h-screen">
+        <%- include('dynamic-component-container', { 
+            containerClass: 'animate-fadeIn',
+            loadingText: 'Loading marketplace...'
+        }) %>
+    </div>
+    
+    <!-- Component configuration using component-loader -->
+    <%- include('component-loader', { 
+        components: [
+            { 
+                fileName: 'marketplaceApp.js', 
+                componentName: 'marketplaceApp',
+                customName: 'marketplace-app',
+                props: {},
+                events: {
+                    'login-success': 'onLoginSuccess',
+                    'logout': 'onLogout',
+                    'theme-changed': 'onThemeChanged'
+                }
+            }
+        ],
+        basePath: '/',
+        debug: process.env.NODE_ENV === 'development',
+        autoLoad: true,
+        containerId: 'marketplace-app-container',
+        containerClass: 'animate-fadeIn',
+        loadingText: 'Loading marketplace...',
+        customHandlers: {
+            onLoginSuccess: (e) => {
+                console.log('Login success in browser page:', e.detail);
+                // Force page reload to update server-side session
+                setTimeout(() => {
+                    window.location.href = '/dashboard';
+                }, 500);
+            },
+            onLogout: (e) => {
+                console.log('Logout in browser page');
+                // Force page reload to update server-side session
+                setTimeout(() => {
+                    window.location.href = '/';
+                }, 500);
+            },
+            onThemeChanged: (e) => {
+                console.log('Theme changed:', e.detail);
+                if (e.detail && e.detail.isDarkMode) {
+                    document.body.classList.add('dark-mode');
+                } else {
+                    document.body.classList.remove('dark-mode');
+                }
+            }
+        }
+    }) %>
+    
+   
+</body>
+</html>

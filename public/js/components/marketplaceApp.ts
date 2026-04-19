@@ -1,14 +1,14 @@
 import { LitElement, html, unsafeCSS } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
-import { AuthService } from './services/auth.js';
-import { User } from './types/index.js';
-import './components/LoginForm.js';
-import './components/navbar.js';
-import './components/ItemsGrid.js';
-import './components/SellerDashboard.js';
+import { AuthService } from '../services/auth.js';
+import { User } from '../types/index.js';
+import './LoginForm.js';
+import './navbar.js';
+import './ItemsGrid.js';
+import './SellerDashboard.js';
 
-import { tailwindCSS } from './styles.js';
-import { lightThemeColors, darkThemeColors } from './colors.js';
+import { tailwindCSS } from '../styles.js';
+import { lightThemeColors, darkThemeColors } from '../colors.js';
 
 @customElement('marketplace-app')
 export class MarketplaceApp extends LitElement {

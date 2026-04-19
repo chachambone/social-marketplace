@@ -199,7 +199,7 @@ app.get('/dashboard', requireAuth, (req: CustomRequest, res: Response) => {
   if (user?.userType === 'seller') {
     return res.redirect('/seller/dashboard');
   } else if (user?.userType === 'buyer') {
-    return res.redirect('/buyer/dashboard');
+    return res.redirect('/');
   }
   
   // Default fallback
@@ -209,31 +209,64 @@ app.get('/dashboard', requireAuth, (req: CustomRequest, res: Response) => {
   });
 });
 
+
+app.get('/browse', requireAuth, (req: CustomRequest, res: Response) => {
+  const user = res.locals.user;
+  
+  if (user?.userType !== 'buyer') {
+    return res.redirect('/');
+  }
+  
+  res.render('browser', {
+    title: 'Browse Items - BidNest',
+    description: 'Browse and shop items on BidNest',
+    user: user,
+    userType: 'buyer',
+    currentPath: '/browse'
+  });
+});
+
 // Seller dashboard
+// Seller dashboard route
 app.get('/seller/dashboard', requireAuth, (req: CustomRequest, res: Response) => {
   const user = res.locals.user;
   
-  if (user?.userType !== 'seller') {
+  console.log('Seller dashboard - User data:', user);
+  
+  if (!user) {
+    return res.redirect('/login');
+  }
+  
+  if (user.userType !== 'seller') {
     return res.redirect('/dashboard');
   }
   
+  // Ensure all required fields are present
+  const userForTemplate = {
+    id: user.id,
+    name: user.name || user.username,
+    email: user.email,
+    userType: user.userType,
+    username: user.username
+  };
+  
   res.render('seller-dashboard', {
     title: 'Seller Dashboard - BidNest',
-    user: user,
+    user: userForTemplate,
     userType: 'seller'
   });
 });
 
 // Buyer dashboard
-app.get('/buyer/dashboard', requireAuth, (req: CustomRequest, res: Response) => {
+app.get('browse', requireAuth, (req: CustomRequest, res: Response) => {
   const user = res.locals.user;
   
   if (user?.userType !== 'buyer') {
-    return res.redirect('/dashboard');
+    return res.redirect('/');
   }
   
-  res.render('buyer-dashboard', {
-    title: 'Buyer Dashboard - BidNest',
+  res.render('browser', {
+    title: 'BidNest',
     user: user,
     userType: 'buyer'
   });

@@ -712,6 +712,7 @@ export class SellerDashboard extends LitElement {
   @property({ type: String }) sellerId = '';
   @property({ type: String }) sellerName = '';
   @property({ type: String }) sellerEmail = '';
+  @state() private currentUser: any = null;
   
   @state() private myItems: Item[] = [];
   @state() private loading = true;
@@ -747,8 +748,37 @@ export class SellerDashboard extends LitElement {
 
   connectedCallback() {
     super.connectedCallback();
+    this.loadCurrentUser();
     this.loadMyItems();
   }
+
+
+  private loadCurrentUser() {
+  // Try to get user from localStorage first
+  const storedUser = localStorage.getItem('user');
+  if (storedUser) {
+    this.currentUser = JSON.parse(storedUser);
+    this.sellerId = this.currentUser.id;
+    this.sellerName = this.currentUser.name || this.currentUser.username;
+    this.sellerEmail = this.currentUser.email;
+  }
+  
+  // Also try to get from AuthService
+  const authUser = AuthService.getCurrentUser();
+  if (authUser) {
+    this.currentUser = authUser;
+    this.sellerId = authUser.id;
+    this.sellerName = authUser.name || authUser.username;
+    this.sellerEmail = authUser.email;
+  }
+  
+  console.log('Seller info loaded:', {
+    sellerId: this.sellerId,
+    sellerName: this.sellerName,
+    sellerEmail: this.sellerEmail
+  });
+}
+
 
   private async loadMyItems() {
     try {
@@ -873,62 +903,73 @@ export class SellerDashboard extends LitElement {
     this.requestUpdate();
   }
 
-  private async createItem(e: Event) {
-    e.preventDefault();
-    const errors = this.validateItem();
-    if (Object.keys(errors).length > 0) {
-      alert(Object.values(errors).join('\n'));
-      return;
-    }
-
-    const token = AuthService.getAccessToken();
-    this.loading = true;
-    
-    try {
-      const response = await fetch('/api/items', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          name: this.newItem.name.trim(),
-          description: this.newItem.description.trim(),
-          price: parseFloat(this.newItem.price),
-          image: this.newItem.gallery[0] || this.newItem.image || 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=400',
-          gallery: this.newItem.gallery,
-          category: this.newItem.category,
-          condition: this.newItem.condition,
-          location: this.newItem.location,
-          shipping: this.newItem.shipping,
-          tags: this.newItem.tags,
-          sellerId: this.sellerId,
-          sellerName: this.sellerName,
-          sellerEmail: this.sellerEmail
-        })
-      });
-
-      if (response.ok) {
-        this.showSuccessMessage('Item listed successfully!');
-        this.showAddItem = false;
-        this.resetForm();
-        await this.loadMyItems();
-        
-        // Dispatch event
-        this.dispatchEvent(new CustomEvent('item-created', { 
-          detail: { item: await response.json() },
-          bubbles: true 
-        }));
-      } else {
-        throw new Error('Failed to create item');
-      }
-    } catch (error) {
-      console.error('Error creating item:', error);
-      alert('Failed to create item. Please try again.');
-    } finally {
-      this.loading = false;
-    }
+private async createItem(e: Event) {
+  e.preventDefault();
+  const errors = this.validateItem();
+  if (Object.keys(errors).length > 0) {
+    alert(Object.values(errors).join('\n'));
+    return;
   }
+
+  // Ensure seller info is available
+  if (!this.sellerId) {
+    alert('Please log in again to list items');
+    return;
+  }
+
+  const token = AuthService.getAccessToken();
+  this.loading = true;
+  
+  try {
+    const itemData = {
+      name: this.newItem.name.trim(),
+      description: this.newItem.description.trim(),
+      price: parseFloat(this.newItem.price),
+      image: this.newItem.gallery[0] || this.newItem.image || 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=400',
+      gallery: this.newItem.gallery,
+      category: this.newItem.category,
+      condition: this.newItem.condition,
+      location: this.newItem.location,
+      shipping: this.newItem.shipping,
+      tags: this.newItem.tags,
+      sellerId: this.sellerId,  // Must be populated
+      sellerName: this.sellerName,  // Must be populated
+      sellerEmail: this.sellerEmail  // Must be populated
+    };
+    
+    console.log('Creating item with data:', itemData);
+    
+    const response = await fetch('/api/items', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify(itemData)
+    });
+
+    if (response.ok) {
+      this.showSuccessMessage('Item listed successfully!');
+      this.showAddItem = false;
+      this.resetForm();
+      await this.loadMyItems();
+      
+      this.dispatchEvent(new CustomEvent('item-created', { 
+        detail: { item: await response.json() },
+        bubbles: true 
+      }));
+    } else {
+      const error = await response.json();
+      console.error('Server error:', error);
+      alert(error.error || 'Failed to create item');
+    }
+  } catch (error) {
+    console.error('Error creating item:', error);
+    alert('Failed to create item. Please try again.');
+  } finally {
+    this.loading = false;
+  }
+}
 
   private async updateItem(e: Event) {
     e.preventDefault();

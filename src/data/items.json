@@ -22,5 +22,31 @@
     "bidCount": 0,
     "createdAt": "2026-04-18T20:50:47.052Z",
     "paymentStatus": "completed"
+  },
+  {
+    "id": "55181b3a-c052-4076-8626-d614d6f564bc",
+    "name": "Em ElectroMate Water Dispenser with Hot and Normal White Water Dispenser WD01",
+    "description": "Key Features:\n\nHot & Normal Water Options – Dispense water at the perfect temperature for drinking or cooking.\nEfficient Heating System – Provides hot water instantly for tea, coffee, and soups.\nUser-Friendly Design – Simple push-button operation for hassle-free use.\nDurable & Stylish Build – Sleek and sturdy design complements any home or office space.\nCompact & Space-Saving – Ideal for kitchens, offices, and shared spaces.\nEnergy-Efficient Performance – Designed to save power while maintaining optimal water temperature.\nThe ElectroMate Water Dispenser is a must-have for homes and workplaces, offering easy access to hot and normal water anytime.\n\n \n\nOrder now and experience convenience at your fingertips!",
+    "price": 2602,
+    "image": "https://ke.jumia.is/unsafe/fit-in/500x500/filters:fill(white)/product/32/7031972/1.jpg?7932",
+    "gallery": [
+      "https://ke.jumia.is/unsafe/fit-in/500x500/filters:fill(white)/product/32/7031972/1.jpg?7932"
+    ],
+    "category": "Electronics",
+    "condition": "Good",
+    "location": "Nairobi, Kenya",
+    "shipping": "Local pickup only",
+    "tags": [
+      "collectible"
+    ],
+    "sellerId": "95969548-8f59-45c5-a332-69ad5a8b39d8",
+    "sellerName": "Jay Chacha",
+    "sellerEmail": "jaychacha071@gmail.com",
+    "status": "active",
+    "highestOffer": null,
+    "highestOfferBuyer": null,
+    "bidCount": 0,
+    "createdAt": "2026-04-19T12:32:31.546Z",
+    "paymentStatus": "pending"
   }
 ]

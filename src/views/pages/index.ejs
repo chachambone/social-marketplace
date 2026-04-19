@@ -18,7 +18,7 @@
                 "lit-element/lit-element.js": "https://cdn.jsdelivr.net/npm/lit-element@4.1.0/lit-element.js",
                 "@lit/reactive-element": "https://cdn.jsdelivr.net/npm/@lit/reactive-element@2.0.4/reactive-element.js",
                 "@lit/reactive-element/": "https://cdn.jsdelivr.net/npm/@lit/reactive-element@2.0.4/",
-                "lucide-static/icons/": "https://cdn.jsdelivr.net/npm/lucide-static@0.371.0/icons/"
+                "lucide": "https://cdn.jsdelivr.net/npm/lucide@0.344.0/dist/umd/lucide.min.js"
             }
         }
     </script>
@@ -30,34 +30,57 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     
     <style>
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes slideInLeft {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        
+        @keyframes slideInRight {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
-        .animate-spin {
-            animation: spin 1s linear infinite;
-        }
         
-        @keyframes slideDown {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
         @keyframes bounce {
             0%, 100% { transform: translateY(0) scale(1) rotate(0deg); }
             50% { transform: translateY(-10px) scale(1.1) rotate(12deg); }
         }
+        
         @keyframes slideUp {
             from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
         }
-        .animate-slideDown { animation: slideDown 0.3s ease-out; }
-        .animate-slideUp { animation: slideUp 0.3s ease-out; }
-        .animate-bounce { animation: bounce 0.5s ease-in-out; }
-        .animate-pulse { 
-            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; 
+        
+        .animate-fadeIn {
+            animation: fadeIn 0.5s ease-out;
         }
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
+        
+        .animate-slideInLeft {
+            animation: slideInLeft 0.5s ease-out;
+        }
+        
+        .animate-slideInRight {
+            animation: slideInRight 0.5s ease-out;
+        }
+        
+        .animate-spin {
+            animation: spin 1s linear infinite;
+        }
+        
+        .animate-bounce {
+            animation: bounce 0.5s ease-in-out;
+        }
+        
+        .animate-slideUp {
+            animation: slideUp 0.3s ease-out;
         }
         
         .line-clamp-1 {
@@ -130,7 +153,7 @@
 </head>
 <body class="bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen">
     <!-- Navbar Component -->
-     <%- include('navbar', { user: user, currentPath: currentPath }) %>
+    <%- include('../components/navbar', { user: user, currentPath: currentPath }) %>
     
     <div id="app" class="flex flex-col min-h-screen">
         <main class="flex-1 w-full">
@@ -193,7 +216,7 @@
                                 <div class="flex items-center justify-between">
                                     <div>
                                         <p class="text-white/80 text-sm">Active listings</p>
-                                        <p class="text-white text-3xl font-bold"><%= typeof listingsCount !== 'undefined' ? listingsCount.toLocaleString() : '12,345' %></p>
+                                        <p class="text-white text-3xl font-bold" id="listings-count">Loading...</p>
                                     </div>
                                     <div class="bg-white/20 rounded-xl p-2.5 text-white">
                                         <svg class="w-5.5 h-5.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -275,7 +298,7 @@
                     </div>
                 </div>
                 
-                <!-- Trending Now Section -->
+                <!-- Trending Now Section with Dynamic ItemsGrid Component -->
                 <div class="mb-16">
                     <div class="flex items-center justify-between mb-8">
                         <div>
@@ -295,73 +318,13 @@
                         </a>
                     </div>
                     
-                    <!-- Items Grid -->
-                    <% if (typeof listings !== 'undefined' && listings.length > 0) { %>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-                            <% listings.slice(0, 4).forEach(item => { %>
-                                <div onclick="window.location.href='/listing/<%= item.id %>'" class="group bg-white rounded-xl overflow-hidden hover:shadow-xl transition-all cursor-pointer border border-gray-100 hover:-translate-y-1 duration-300">
-                                    <div class="relative h-48 overflow-hidden bg-gray-100">
-                                        <img src="<%= item.image || 'https://images.unsplash.com/photo-1472214103451-9374bd1c798e?w=400&h=300&fit=crop' %>" alt="<%= item.title %>" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
-                                        <div class="absolute top-3 left-3">
-                                            <span class="bg-white/95 text-gray-700 text-xs font-semibold px-2 py-1 rounded-lg"><%= item.category || 'Item' %></span>
-                                        </div>
-                                        <% if (!item.sold) { %>
-                                            <div class="absolute top-3 right-3">
-                                                <span class="text-white text-xs font-semibold px-2 py-1 rounded-md flex items-center gap-1 shadow-sm" style="background-color:#F3A712">
-                                                    <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z"></path>
-                                                    </svg>
-                                                    HOT
-                                                </span>
-                                            </div>
-                                        <% } %>
-                                    </div>
-                                    <div class="p-4">
-                                        <h3 class="font-semibold text-gray-900 mb-1 line-clamp-1"><%= item.title %></h3>
-                                        <p class="font-bold text-lg" style="color:#F3A712">KSh <%= Number(item.starting_price || item.price || 0).toLocaleString() %></p>
-                                        <div class="flex items-center justify-between mt-2">
-                                            <div class="flex items-center gap-1 text-xs text-gray-500">
-                                                <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                                                </svg>
-                                                <%= item.location || 'Kenya' %>
-                                            </div>
-                                            <div class="flex items-center gap-1 text-xs text-gray-500">
-                                                <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                                </svg>
-                                                <%= new Date(item.created_at).toLocaleDateString() %>
-                                            </div>
-                                        </div>
-                                        <div class="flex items-center justify-between mt-3 pt-3 border-t border-gray-50">
-                                            <div class="flex items-center gap-1.5">
-                                                <div class="w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold" style="background-color:#F3A712">
-                                                    <%= (item.seller_name || item.seller?.name || 'S')[0].toUpperCase() %>
-                                                </div>
-                                                <span class="text-xs text-gray-600"><%= item.seller_name || item.seller?.name || 'Seller' %></span>
-                                            </div>
-                                            <button class="text-xs px-3 py-1.5 rounded-lg font-semibold transition-all flex items-center gap-1" style="background-color:#FEF3D7; color:#F3A712">
-                                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
-                                                </svg>
-                                                Chat
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            <% }); %>
-                        </div>
-                    <% } else { %>
-                        <div class="py-20 text-center bg-white rounded-2xl border border-gray-100">
-                            <div class="text-5xl mb-4">📦</div>
-                            <h3 class="text-lg font-semibold text-gray-700 mb-2">No listings yet</h3>
-                            <p class="text-gray-400 mb-6">Be the first to sell something on TradeHive!</p>
-                            <a href="/sell" class="inline-block text-white font-semibold px-6 py-3 rounded-xl hover:opacity-90 transition" style="background-color:#F3A712">
-                                List an Item 🐝
-                            </a>
-                        </div>
-                    <% } %>
+                    <!-- Dynamic Component Container for ItemsGrid -->
+                    <div id="items-grid-container" class="animate-slideInRight">
+                        <%- include('dynamic-component-container', { 
+                            containerClass: 'animate-slideInRight',
+                            loadingText: 'Loading items...'
+                        }) %>
+                    </div>
                 </div>
                 
                 <!-- How It Works -->
@@ -403,7 +366,7 @@
                             </svg>
                             <h2 class="text-2xl font-bold text-gray-900">Trusted by the community</h2>
                         </div>
-                        <p class="text-gray-500">What our users say about TradeHive</p>
+                        <p class="text-gray-500">What our users say about BidNest</p>
                     </div>
                     <div class="grid md:grid-cols-3 gap-6">
                         <% const testimonials = [
@@ -443,7 +406,7 @@
                         </svg>
                     </div>
                     <h2 class="text-2xl font-bold mb-2">Ready to start selling?</h2>
-                    <p class="text-white/90 mb-5">Join thousands of sellers making money on TradeHive</p>
+                    <p class="text-white/90 mb-5">Join thousands of sellers making money on BidNest</p>
                     <a href="/sell" class="bg-white font-semibold px-6 py-2.5 rounded-lg hover:shadow-lg transition-all inline-flex items-center gap-2 text-sm" style="color:#F3A712">
                         Start selling now
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -455,16 +418,112 @@
         </main>
         
         <!-- Include Footer Component -->
-        <%- include('footer') %>
-        
+        <%- include('../components/footer') %>
     </div>
     
-    <script type="module">
-        import '../components/BidNavbar.js';
+    <!-- Component configuration using component-loader -->
+    <%- include('component-loader', { 
+        components: [
+            { 
+                fileName: 'ItemsGrid.js', 
+                componentName: 'ItemsGrid',
+                customName: 'items-grid',
+                props: {
+                    limit: 8,
+                    showFilters: false,
+                    showViewAll: true
+                },
+                events: {
+                    'item-click': 'onItemClick',
+                    'add-to-cart': 'onAddToCart',
+                    'items-loaded': 'onItemsLoaded'
+                }
+            }
+        ],
+        basePath: '/components/',
+        debug: false,
+        autoLoad: true,
+        containerId: 'items-grid-container',
+        containerClass: 'animate-slideInRight',
+        loadingText: 'Loading items...',
+        customHandlers: {
+            onItemClick: (e) => {
+                console.log('Item clicked:', e.detail);
+                if (e.detail && e.detail.id) {
+                    window.location.href = `/listing/${e.detail.id}`;
+                }
+            },
+            onAddToCart: (e) => {
+                console.log('Add to cart:', e.detail);
+                // Show toast notification
+                showToast('Item added to cart! 🛒', 'success');
+            },
+            onItemsLoaded: (e) => {
+                console.log('Items loaded:', e.detail);
+                // Update the stats counter
+                if (e.detail && e.detail.count) {
+                    const listingsCountElem = document.getElementById('listings-count');
+                    if (listingsCountElem) {
+                        listingsCountElem.textContent = e.detail.count.toLocaleString();
+                    }
+                }
+            }
+        }
+    }) %>
+    
+    <script>
+        // Toast notification system
+        function showToast(message, type = 'success') {
+            // Remove existing toast
+            const existingToast = document.querySelector('.toast-notification');
+            if (existingToast) {
+                existingToast.remove();
+            }
+            
+            // Create toast element
+            const toast = document.createElement('div');
+            toast.className = `toast-notification fixed bottom-4 right-4 z-50 bg-white rounded-xl shadow-2xl p-4 flex items-center gap-3 animate-slideUp`;
+            
+            const icons = {
+                success: '✅',
+                error: '❌',
+                info: 'ℹ️',
+                warning: '⚠️'
+            };
+            
+            const colors = {
+                success: 'border-l-4 border-green-500',
+                error: 'border-l-4 border-red-500',
+                info: 'border-l-4 border-blue-500',
+                warning: 'border-l-4 border-yellow-500'
+            };
+            
+            toast.className += ` ${colors[type]}`;
+            
+            toast.innerHTML = `
+                <div class="text-2xl">${icons[type]}</div>
+                <div class="flex-1">
+                    <p class="text-gray-900 font-medium">${message}</p>
+                </div>
+                <button onclick="this.parentElement.remove()" class="text-gray-400 hover:text-gray-600">
+                    ✕
+                </button>
+            `;
+            
+            document.body.appendChild(toast);
+            
+            // Auto remove after 3 seconds
+            setTimeout(() => {
+                if (toast && toast.parentElement) {
+                    toast.remove();
+                }
+            }, 3000);
+        }
         
+        // Set current year in footer
         document.getElementById('current-year').textContent = new Date().getFullYear();
         
-        // Listen for dark mode changes to update body class
+        // Listen for dark mode changes
         window.addEventListener('darkmode-changed', (e) => {
             if (e.detail.isDarkMode) {
                 document.body.classList.add('dark-mode');
@@ -478,6 +537,20 @@
         if (savedDarkMode === 'true') {
             document.body.classList.add('dark-mode');
         }
+        
+        // Smooth scroll for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                const href = this.getAttribute('href');
+                if (href !== '#') {
+                    e.preventDefault();
+                    const target = document.querySelector(href);
+                    if (target) {
+                        target.scrollIntoView({ behavior: 'smooth' });
+                    }
+                }
+            });
+        });
     </script>
 </body>
 </html>

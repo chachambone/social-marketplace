@@ -84,5 +84,23 @@
       }
     ],
     "lastUpdated": "2026-04-19T08:34:44.049Z"
+  },
+  {
+    "itemId": "55181b3a-c052-4076-8626-d614d6f564bc",
+    "participants": [
+      "95969548-8f59-45c5-a332-69ad5a8b39d8"
+    ],
+    "messages": [
+      {
+        "id": "1776604589958-e66ht0gwb",
+        "itemId": "55181b3a-c052-4076-8626-d614d6f564bc",
+        "senderId": "95969548-8f59-45c5-a332-69ad5a8b39d8",
+        "senderName": "Jay Chacha",
+        "type": "message",
+        "content": "hELLO",
+        "timestamp": "2026-04-19T13:16:29.963Z"
+      }
+    ],
+    "lastUpdated": "2026-04-19T13:16:29.959Z"
   }
 ]
