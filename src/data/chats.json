@@ -2,7 +2,13 @@
   {
     "itemId": "3376a52f-7a63-4218-9e49-1de57f039a15",
     "participants": [
-      "31f0c2fb-7cbe-4a74-9db6-aea8aa31d0bd"
+      "31f0c2fb-7cbe-4a74-9db6-aea8aa31d0bd",
+      "2ba595f6-7e46-49ae-9a8a-ef436fde4b08",
+      null,
+      null,
+      null,
+      null,
+      null
     ],
     "messages": [
       {
@@ -22,8 +28,61 @@
         "type": "message",
         "content": "How is you?",
         "timestamp": "2026-04-18T21:06:38.572Z"
+      },
+      {
+        "id": "1776581412182-chbk1gc7x",
+        "itemId": "3376a52f-7a63-4218-9e49-1de57f039a15",
+        "senderId": "2ba595f6-7e46-49ae-9a8a-ef436fde4b08",
+        "senderName": "Mary Charity",
+        "type": "bid",
+        "bidAmount": 90,
+        "timestamp": "2026-04-19T06:50:12.180Z"
+      },
+      {
+        "id": "1776581465296-uz3rssx8a",
+        "itemId": "3376a52f-7a63-4218-9e49-1de57f039a15",
+        "senderId": "2ba595f6-7e46-49ae-9a8a-ef436fde4b08",
+        "senderName": "Mary Charity",
+        "type": "message",
+        "content": "HELLO",
+        "timestamp": "2026-04-19T06:51:05.296Z"
+      },
+      {
+        "id": "1776585343963-anxa9jbqw",
+        "itemId": "3376a52f-7a63-4218-9e49-1de57f039a15",
+        "type": "winner_announcement",
+        "content": "🎉 Winner announced! Mary Charity won with a bid of KSh 90! 🎉",
+        "timestamp": "2026-04-19T07:55:43.962Z"
+      },
+      {
+        "id": "1776585589183-xube7bg7l",
+        "itemId": "3376a52f-7a63-4218-9e49-1de57f039a15",
+        "type": "winner_announcement",
+        "content": "🎉 Winner announced! Mary Charity won with a bid of KSh 90! 🎉",
+        "timestamp": "2026-04-19T07:59:49.186Z"
+      },
+      {
+        "id": "1776585621244-ddp1oq0os",
+        "itemId": "3376a52f-7a63-4218-9e49-1de57f039a15",
+        "type": "winner_announcement",
+        "content": "🎉 Winner announced! Mary Charity won with a bid of KSh 90! 🎉",
+        "timestamp": "2026-04-19T08:00:21.244Z"
+      },
+      {
+        "id": "1776587291462-z7s9fvozv",
+        "itemId": "3376a52f-7a63-4218-9e49-1de57f039a15",
+        "type": "winner_announcement",
+        "content": "🎉 Winner announced! Mary Charity won with a bid of KSh 90! 🎉",
+        "timestamp": "2026-04-19T08:28:11.464Z"
+      },
+      {
+        "id": "1776587684049-fyz4w4ecr",
+        "itemId": "3376a52f-7a63-4218-9e49-1de57f039a15",
+        "type": "winner_announcement",
+        "content": "🎉 Winner announced! Mary Charity won with a bid of KSh 90! 🎉",
+        "timestamp": "2026-04-19T08:34:44.050Z"
       }
     ],
-    "lastUpdated": "2026-04-18T21:06:38.576Z"
+    "lastUpdated": "2026-04-19T08:34:44.049Z"
   }
 ]

@@ -967,9 +967,6 @@ class BidNavbar extends LitElement {
           </div>
         ` : ''}
       </nav>
-
-      <!-- Spacer -->
-      <div class="spacer"></div>
     `;
   }
 }

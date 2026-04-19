@@ -155,22 +155,18 @@ export class ItemCard extends LitElement {
             >
               View Details
             </button>
-            ${!isOwner && !this.item.sold ? html`
+            ${!this.item.sold ? html`
               <button 
                 @click=${this.openBidDrawer}
                 class="flex-1 py-2 rounded-xl font-semibold text-sm transition-colors"
                 style="background-color: #F3A712; color: white;"
               >
-                💰 Make Offer
+              ${!isOwner ? 'Make Offer' : 'View Chat'}
               </button>
-              <button 
-                @click=${this.openChatDrawer}
-                class="px-3 py-2 rounded-xl transition-colors text-sm"
-                style="background-color: #FEF3D7; color: #F3A712;"
-              >
-                💬
-              </button>
+              
             ` : ''}
+
+            
           </div>
         </div>
       </div>
