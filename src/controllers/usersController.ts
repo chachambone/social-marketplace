@@ -262,6 +262,7 @@ export const login = async (req: Request, res: Response) => {
   }
 };
 
+// Get profile (already exists, but ensure it's working)
 export const getProfile = async (req: any, res: Response) => {
   try {
     const users: User[] = readUsers();
@@ -278,3 +279,117 @@ export const getProfile = async (req: any, res: Response) => {
     throw new AppError('Failed to get profile', 500);
   }
 };
+
+
+export const updateProfile = async (req: any, res: Response) => {
+  try {
+    const { email, username, currentPassword, newPassword } = req.body;
+    const userId = req.user.id; // From authenticateToken middleware
+
+    const users: User[] = readUsers();
+    const userIndex = users.findIndex(u => u.id === userId);
+
+    if (userIndex === -1) {
+      throw new AppError('User not found', 404);
+    }
+
+    const user = users[userIndex];
+
+    // Check if email is taken by another user
+    if (email && email !== user.email) {
+      const emailExists = users.some(u => u.email === email && u.id !== userId);
+      if (emailExists) {
+        throw new AppError('Email already in use', 409);
+      }
+    }
+
+    // Check if username is taken by another user
+    if (username && username !== user.username) {
+      const usernameExists = users.some(u => u.username === username && u.id !== userId);
+      if (usernameExists) {
+        throw new AppError('Username already taken', 409);
+      }
+    }
+
+    // Update email if provided
+    if (email && email !== user.email) {
+      user.email = email;
+    }
+
+    // Update username if provided
+    if (username && username !== user.username) {
+      user.username = username;
+    }
+
+    // Update password if provided
+    if (newPassword) {
+      // Verify current password
+      if (!currentPassword) {
+        throw new AppError('Current password is required to change password', 400);
+      }
+
+      const isValidPassword = await bcrypt.compare(currentPassword, user.password);
+      if (!isValidPassword) {
+        throw new AppError('Current password is incorrect', 401);
+      }
+
+      // Hash new password
+      user.password = await bcrypt.hash(newPassword, authConfig.bcryptSaltRounds);
+    }
+
+    // Save updated user
+    users[userIndex] = user;
+    writeUsers(users);
+
+    // Generate new token
+    const accessToken = jwt.sign(
+      { id: user.id, email: user.email, username: user.username, userType: user.userType },
+      authConfig.jwtSecret,
+      { expiresIn: authConfig.jwtExpiresIn } as jwt.SignOptions
+    );
+
+    const { password: _, ...userWithoutPassword } = user;
+
+    res.json({
+      success: true,
+      message: 'Profile updated successfully',
+      user: userWithoutPassword,
+      accessToken
+    });
+  } catch (error) {
+    if (error instanceof AppError) throw error;
+    console.error('Update profile error:', error);
+    throw new AppError('Failed to update profile', 500);
+  }
+};
+
+// Delete account
+export const deleteAccount = async (req: any, res: Response) => {
+  try {
+    const userId = req.user.id;
+
+    let users: User[] = readUsers();
+    const userIndex = users.findIndex(u => u.id === userId);
+
+    if (userIndex === -1) {
+      throw new AppError('User not found', 404);
+    }
+
+    // Remove user
+    users = users.filter(u => u.id !== userId);
+    writeUsers(users);
+
+    // Also delete user's items (optional - implement if needed)
+    // You might want to delete or reassign items from this user
+
+    res.json({
+      success: true,
+      message: 'Account deleted successfully'
+    });
+  } catch (error) {
+    if (error instanceof AppError) throw error;
+    console.error('Delete account error:', error);
+    throw new AppError('Failed to delete account', 500);
+  }
+};
+

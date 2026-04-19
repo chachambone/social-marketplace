@@ -310,6 +310,21 @@ app.get('/logout', (req: CustomRequest, res: Response) => {
   });
 });
 
+app.get('/profile', requireAuth, async (req: CustomRequest, res: Response) => {
+  const user = res.locals.user;
+  
+  if (!user) {
+    return res.redirect('/login');
+  }
+  
+  res.render('profile', {
+    title: 'Profile - BidNest',
+    description: 'Manage your account settings',
+    user: user,
+    currentPath: '/profile'
+  });
+});
+
 // API routes
 app.use('/api/items', itemsRouter);
 app.use('/api/users', usersRouter);
