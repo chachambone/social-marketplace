@@ -55,7 +55,7 @@ export const sendWelcomeEmail = async (data: WelcomeEmailData) => {
         <p style="font-size: 15px; color: #333;">You can start exploring and trading collectibles right away!</p>
         
         <div style="text-align: center; margin: 30px 0;">
-          <a href="${process.env.APP_URL || 'http://localhost:3000'}" 
+          <a href="${process.env.APP_URL}" 
              style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
                     color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; 
                     font-weight: bold; font-size: 16px;">
@@ -99,7 +99,7 @@ Please CHANGE YOUR PASSWORD IMMEDIATELY after your first login.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Login here: ${process.env.APP_URL || 'http://localhost:3000'}/login
+Login here: ${process.env.APP_URL}/login
 
 Start exploring and trading collectibles now!
 

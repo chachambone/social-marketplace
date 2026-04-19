@@ -1,6 +1,6 @@
 import { Item } from '../types/index.js';
 
-const API_URL = 'http://localhost:3000/api';
+const API_URL = '/api';
 
 export class ItemService {
   static async getAllItems(search?: string): Promise<Item[]> {
