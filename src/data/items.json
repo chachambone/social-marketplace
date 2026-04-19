@@ -42,12 +42,12 @@
     "sellerId": "95969548-8f59-45c5-a332-69ad5a8b39d8",
     "sellerName": "Jay Chacha",
     "sellerEmail": "jaychacha071@gmail.com",
-    "status": "active",
+    "status": "sold",
     "highestOffer": null,
     "highestOfferBuyer": null,
     "bidCount": 0,
     "createdAt": "2026-04-19T12:32:31.546Z",
-    "paymentStatus": "pending"
+    "paymentStatus": "completed"
   },
   {
     "id": "277a8658-784e-4a44-a26d-dbdd26e920f8",

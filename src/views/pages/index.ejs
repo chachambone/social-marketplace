@@ -40,6 +40,7 @@
                                     Negotiate live, close deals instantly.
                                 </p>
                                 <div class="flex flex-col sm:flex-row gap-4">
+                                     <% if (!user || user.userType !== 'seller') { %>
                                     <a href="/browse"
                                         class="bg-white text-[#F3A712] font-bold px-8 py-4 rounded-xl hover:shadow-2xl transition-all duration-300 text-lg flex items-center justify-center gap-2 group hover:-translate-y-0.5">
                                         Browse listings
@@ -49,10 +50,14 @@
                                                 d="M9 5l7 7-7 7"></path>
                                         </svg>
                                     </a>
-                                    <a href="/sell"
-                                        class="backdrop-blur-md bg-white/20 text-white font-semibold px-8 py-4 rounded-xl hover:bg-white/30 hover:scale-[1.02] transition-all duration-300 text-lg border border-white/30 shadow-lg hover:shadow-xl">
-                                        Start selling
-                                    </a>
+                                     <% } %>
+
+                                        <% if (!user || user.userType !== 'buyer') { %>
+                                        <a href="/seller/dashboard"
+                                            class="backdrop-blur-md bg-white/20 text-white font-semibold px-8 py-4 rounded-xl hover:bg-white/30 hover:scale-[1.02] transition-all duration-300 text-lg border border-white/30 shadow-lg hover:shadow-xl">
+                                            Start selling
+                                        </a>
+                                    <% } %>
                                 </div>
                                 <div class="flex flex-wrap gap-6 mt-8 pt-6 border-t border-white/20">
                                     <div class="flex items-center gap-2">
@@ -88,7 +93,9 @@
                                     <div class="flex items-center justify-between">
                                         <div>
                                             <p class="text-white/80 text-sm">Active listings</p>
-                                            <p class="text-white text-3xl font-bold" id="listings-count">Loading...</p>
+                                            <p class="text-white text-3xl font-bold">
+                                                <%= typeof listingsCount !== 'undefined' ? listingsCount.toLocaleString() : 'Loading...' %>
+                                            </p>
                                         </div>
                                         <div class="bg-white/20 rounded-xl p-2.5 text-white">
                                             <svg class="w-5.5 h-5.5" fill="none" stroke="currentColor"

@@ -378,6 +378,42 @@ if (process.env.NODE_ENV === 'development') {
 // Error handling
 app.use(errorHandler);
 
+
+app.use((req: CustomRequest, res: Response) => {
+  // Check if the request is for an API endpoint
+  if (req.path.startsWith('/api/')) {
+    return res.status(404).json({ 
+      error: 'API endpoint not found',
+      path: req.path,
+      method: req.method
+    });
+  }
+  
+  // Check if the request is for a static asset
+  const staticExtensions = ['.css', '.js', '.png', '.jpg', '.jpeg', '.gif', '.svg', '.ico', '.json', '.map'];
+  const isStaticAsset = staticExtensions.some(ext => req.path.endsWith(ext));
+  
+  if (isStaticAsset) {
+    return res.status(404).sendFile(path.join(__dirname, '../public/404-asset.html'), (err) => {
+      if (err) {
+        res.status(404).send('Asset not found');
+      }
+    });
+  }
+  
+  // For HTML pages, render a nice 404 page
+  const user = res.locals.user || null;
+  
+  res.status(404).render('404', {
+    title: 'Page Not Found - BidHive',
+    description: 'The page you are looking for does not exist',
+    user: user,
+    currentPath: req.path,
+    requestedPath: req.path
+  });
+});
+
+
 // Create HTTP server and attach WebSocket
 const server = createServer(app);
 setupWebSocketServer(server);

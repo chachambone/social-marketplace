@@ -105,12 +105,7 @@ export class MarketplaceApp extends LitElement {
     // Seller View
     if (this.user.userType === 'seller') {
       return html`
-        <bid-navbar 
-          .isDarkMode=${this.isDarkMode} 
-          @toggle-theme=${this.toggleTheme} 
-          @logout=${this.handleLogout}
-          @cart-click=${this.toggleCart}
-        ></bid-navbar>
+  
 
         <div class="min-h-screen" style="background-color: var(--background); color: var(--on-background);">
           <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -147,13 +142,7 @@ export class MarketplaceApp extends LitElement {
 
     // Buyer View
     return html`
-      <bid-navbar 
-        .isDarkMode=${this.isDarkMode} 
-        @toggle-theme=${this.toggleTheme} 
-        @logout=${this.handleLogout}
-        @cart-click=${this.toggleCart}
-      ></bid-navbar>
-
+ 
       <div class="min-h-screen" style="background-color: var(--background); color: var(--on-background);">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <items-grid></items-grid>

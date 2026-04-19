@@ -70,7 +70,7 @@
         currentPath: currentPath || '/seller/chats'
     }) %>
     
-    <div class="max-w-7xl mx-auto px-4 py-8 mt-16">
+    <div class="max-w-7xl mx-auto px-4">
         <div class="animate-fadeIn">
             <!-- Header -->
             <div class="bg-gradient-to-r from-[#F3A712] to-[#F97316] rounded-2xl p-6 mb-8 text-white shadow-lg">
@@ -166,7 +166,7 @@
         // Display items list
         function displayItemsList(items) {
             const activeItems = items.filter(item => 
-                item.status === 'active' || (item.bidCount > 0)
+                item.status === 'active'
             );
             
             if (activeItems.length === 0) {

@@ -878,41 +878,8 @@ class BidNavbar extends LitElement {
                             </div>
                           </a>
                         ` : ''}
-                        <a href="/my-listings" class="dropdown-item">
-                          ${this.icon(shoppingBagIcon, 18, "dropdown-item-icon")}
-                          <div class="dropdown-item-text">
-                            <div class="dropdown-item-title">My Listings</div>
-                            <div class="dropdown-item-subtitle">Manage your items</div>
-                          </div>
-                        </a>
-                        <a href="/favorites" class="dropdown-item">
-                          ${this.icon(heartIcon, 18, "dropdown-item-icon")}
-                          <div class="dropdown-item-text">
-                            <div class="dropdown-item-title">Favorites</div>
-                            <div class="dropdown-item-subtitle">Saved items</div>
-                          </div>
-                        </a>
-                        <a href="/wallet" class="dropdown-item">
-                          ${this.icon(walletIcon, 18, "dropdown-item-icon")}
-                          <div class="dropdown-item-text">
-                            <div class="dropdown-item-title">Wallet</div>
-                            <div class="dropdown-item-subtitle">KSh 0.00</div>
-                          </div>
-                        </a>
-                        <a href="/settings" class="dropdown-item">
-                          ${this.icon(settingsIcon, 18, "dropdown-item-icon")}
-                          <div class="dropdown-item-text">
-                            <div class="dropdown-item-title">Settings</div>
-                            <div class="dropdown-item-subtitle">Preferences and privacy</div>
-                          </div>
-                        </a>
-                        <a href="/help" class="dropdown-item">
-                          ${this.icon(helpCircleIcon, 18, "dropdown-item-icon")}
-                          <div class="dropdown-item-text">
-                            <div class="dropdown-item-title">Help & Support</div>
-                            <div class="dropdown-item-subtitle">Get assistance</div>
-                          </div>
-                        </a>
+                     
+                    
                       </div>
 
                       <div class="dropdown-divider"></div>
