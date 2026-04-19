@@ -90,7 +90,7 @@
             
             <!-- Dynamic Component Container -->
             <%- include('dynamic-component-container', { 
-                containerClass: 'bg-white rounded-2xl shadow-xl p-8 animate-slideInRight',
+                containerClass: 'animate-slideInRight',
                 loadingText: 'Loading authentication form...'
             }) %>
             
@@ -126,7 +126,7 @@
         basePath: '/',
         debug: false,
         autoLoad: true,
-        containerClass: 'bg-white rounded-2xl shadow-xl p-8 animate-slideInRight',
+        containerClass: 'animate-slideInRight',
         loadingText: 'Loading authentication form...',
         customHandlers: {
             onLoginSuccess: (e) => {

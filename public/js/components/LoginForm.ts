@@ -103,9 +103,20 @@ export class LoginForm extends LitElement {
   render() {
     return html`
       <div class="max-w-md mx-auto mt-16 p-8 bg-white rounded-lg shadow-lg">
-        <h2 class="text-2xl font-bold text-center mb-6 text-gray-800">
-          ${this.isLoginMode ? 'Welcome Back!' : 'Create Account'}
+        <div class="text-2xl font-bold text-center mb-6 text-gray-800">
+
+        <div class="text-4xl mb-2">🐝</div>            
+        <h2>
+          ${this.isLoginMode ? html `Welcome Back to <span style="color:#F3A712">BidNest</span> ` : 'Create Account'}
         </h2>
+
+                <p class="text-gray-500 text-sm mt-1">${this.isLoginMode ? html `Sign in to continue` : 'Sign up to get started'}</p>
+
+                
+        </div>
+
+        
+
         
         <form @submit=${this.handleSubmit} class="space-y-4">
           ${this.error ? html`

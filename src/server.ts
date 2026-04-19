@@ -3,7 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import path from 'path';
 import session from 'express-session';
-import MongoStore from 'connect-mongo';
+import FileStore from 'session-file-store';
 
 import { fileURLToPath } from 'url';
 import { createServer } from 'http';
@@ -23,18 +23,23 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
-const PORT = parseInt(process.env.PORT || '3000', 10); // Convert to number
+const PORT = parseInt(process.env.PORT || '3000', 10);
 const HOST = '0.0.0.0';
 
-// Session Configuration
+// Initialize file session store
+const FileStoreSession = FileStore(session);
+
+// Session Configuration with file storage
 app.use(session({
   secret: process.env.SESSION_SECRET || 'your-secret-key-change-in-production',
   resave: false,
   saveUninitialized: false,
-  store: MongoStore.create({
-    mongoUrl: process.env.MONGODB_URI || 'mongodb://localhost:27017/bidnest',
+  store: new FileStoreSession({
+    path: path.join(__dirname, '../sessions'),
     ttl: 7 * 24 * 60 * 60, // 7 days
-    autoRemove: 'native'
+    reapInterval: 60 * 60, // Check for expired sessions every hour
+    retries: 3,
+    logFn: function() {} // Disable logging
   }),
   cookie: {
     secure: process.env.NODE_ENV === 'production',
@@ -72,6 +77,13 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(requestLogger);
 
+// Create sessions directory if it doesn't exist
+import fs from 'fs';
+const sessionsDir = path.join(__dirname, '../sessions');
+if (!fs.existsSync(sessionsDir)) {
+  fs.mkdirSync(sessionsDir, { recursive: true });
+}
+
 // Static files
 app.use(express.static(path.join(__dirname, '../public')));
 app.use(express.static(path.join(__dirname, '../src/assets')));
@@ -106,7 +118,9 @@ app.get('/', async (req: CustomRequest, res: Response) => {
   }
   
   try {
-    const response = await fetch(`${process.env.API_URL || 'http://localhost:3000'}/api/items`);
+    // Use absolute URL for internal API calls
+    const apiUrl = process.env.API_URL || `http://localhost:${PORT}`;
+    const response = await fetch(`${apiUrl}/api/items`);
     const data = await response.json();
     const listings = data.items || data || [];
     
@@ -135,63 +149,19 @@ app.get('/dashboard', requireAuth, (req: CustomRequest, res: Response) => {
 });
 
 app.get('/login', redirectIfAuthenticated, (req: CustomRequest, res: Response) => {
-  // Get redirect URL from query params
   const redirectUrl = req.query.redirect || '/dashboard';
   
-  // Prepare component configuration
-  const componentConfig = {
-    components: [
-      { 
-        fileName: 'LoginForm.js', 
-        componentName: 'LoginForm',
-        customName: 'login-form',
-        props: {
-          redirectUrl: redirectUrl,
-          showRegister: false,
-          theme: 'default'
-        },
-        events: {
-          'login-success': 'onLoginSuccess',
-          'register-success': 'onRegisterSuccess',
-          'login-error': 'onLoginError'
-        }
-      }
-    ],
-    basePath: process.env.ASSET_BASE_PATH || '/',
-    debug: process.env.NODE_ENV === 'development',
-    autoLoad: true,
-    containerClass: 'bg-white rounded-2xl shadow-xl p-8 animate-slideInRight',
-    loadingText: 'Loading authentication form...',
-    customHandlers: {
-      onLoginSuccess: (e) => {
-        console.log('Login success:', e.detail);
-      },
-      onRegisterSuccess: (e) => {
-        console.log('Register success:', e.detail);
-      },
-      onLoginError: (e) => {
-        console.log('Login error:', e.detail);
-      }
-    }
-  };
-  
-  // Also pass any additional data needed for the page
-  const pageData = {
+  res.render('login', {
     title: 'Login - BidNest',
     description: 'Login to your BidNest account',
+    redirectUrl: redirectUrl,
     showSocialLogin: true,
-    socialProviders: ['google', 'github', 'facebook'],
+    socialProviders: ['google', 'github'],
     enableDemoLogin: process.env.NODE_ENV === 'development',
     demoCredentials: {
       email: 'demo@bidnest.com',
       password: 'demo123'
     }
-  };
-  
-  res.render('login', {
-    ...pageData,
-    componentConfig: componentConfig,
-    redirectUrl: redirectUrl
   });
 });
 
@@ -218,8 +188,24 @@ app.use('/api/messages', messagesRouter);
 
 // Health check
 app.get('/api/health', (req: Request, res: Response) => {
-  res.json({ status: 'OK', timestamp: new Date().toISOString() });
+  res.json({ 
+    status: 'OK', 
+    timestamp: new Date().toISOString(),
+    storage: 'JSON files',
+    sessions: 'File-based'
+  });
 });
+
+// Debug route to check session (remove in production)
+if (process.env.NODE_ENV === 'development') {
+  app.get('/debug/session', (req: CustomRequest, res: Response) => {
+    res.json({
+      sessionId: req.session.id,
+      userId: req.session.userId,
+      sessionData: req.session
+    });
+  });
+}
 
 // Error handling
 app.use(errorHandler);
@@ -232,4 +218,5 @@ setupWebSocketServer(server);
 server.listen(PORT, HOST, () => {
   console.log(`🚀 Server running on http://${HOST}:${PORT}`);
   console.log(`🔌 WebSocket server ready for real-time chat`);
+  console.log(`💾 Session storage: ${path.join(__dirname, '../sessions')}`);
 });
