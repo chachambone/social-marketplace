@@ -12,14 +12,14 @@ export interface User {
 }
 
 // Hash for "password123"
-const HASH = "$2b$10$w4tL7VEEFC96IGrKn2x7/ekIeCeXIXvfhrGBa8Sl1BXqOIKrJRMsO";
+const Hash = "$2b$10$jOxtcIWFAJrINoaaAy1g2uQDzoyCE7W34mnF.IZF0Eo067rg3MeGC";
 
 export const users: User[] = [
   {
     id: "buyer_demo_id",
     email: "buyer@bidhive.com",
     username: "DemoBuyer",
-    password: HASH,
+    password: Hash,
     userType: "buyer",
     createdAt: "2026-04-20T08:00:00.000Z",
     lastLogin: "2026-04-20T08:00:00.000Z"
@@ -28,7 +28,7 @@ export const users: User[] = [
     id: "seller_amara",
     email: "amara@bidhive.com",
     username: "Amara K.",
-    password: HASH,
+    password: Hash,
     userType: "seller",
     createdAt: "2026-04-20T08:00:00.000Z",
     lastLogin: "2026-04-20T08:00:00.000Z"
@@ -37,7 +37,7 @@ export const users: User[] = [
     id: "seller_kevin",
     email: "kevin@bidhive.com",
     username: "Kevin M.",
-    password: HASH,
+    password: Hash,
     userType: "seller",
     createdAt: "2026-04-20T08:00:00.000Z",
     lastLogin: "2026-04-20T08:00:00.000Z"
@@ -46,7 +46,7 @@ export const users: User[] = [
     id: "seller_zawadi",
     email: "zawadi@bidhive.com",
     username: "Zawadi W.",
-    password: HASH,
+    password: Hash,
     userType: "seller",
     createdAt: "2026-04-20T08:00:00.000Z",
     lastLogin: "2026-04-20T08:00:00.000Z"
@@ -55,7 +55,7 @@ export const users: User[] = [
     id: "seller_brian",
     email: "brian@bidhive.com",
     username: "Brian O.",
-    password: HASH,
+    password: Hash,
     userType: "seller",
     createdAt: "2026-04-20T08:00:00.000Z",
     lastLogin: "2026-04-20T08:00:00.000Z"
@@ -64,7 +64,7 @@ export const users: User[] = [
     id: "seller_jay",
     email: "jaychacha071@gmail.com",
     username: "Jay Chacha",
-    password: HASH,
+    password: Hash,
     userType: "seller",
     createdAt: "2026-04-20T08:00:00.000Z",
     lastLogin: "2026-04-20T08:00:00.000Z"
