@@ -7,7 +7,7 @@
     "build:ts:server": "tsc -p tsconfig.server.json",
     "build:css": "tailwindcss -i ./public/css/tailwind.css -o ./public/css/output.css --minify",
     "generate:css": "node --experimental-specifier-resolution=node src/scripts/generate-css-ts.ts",
-    "build": "npm run build:css && npm run generate:css && npm run build:ts:client && npm run build:ts:server",
+    "build": "npm run generate:css && npm run build:ts:client && npm run build:ts:server",
     "watch:ts:client": "tsc -p tsconfig.client.json --watch",
     "watch:ts:server": "tsc -p tsconfig.server.json --watch",
     "watch:css": "tailwindcss -i ./public/css/tailwind.css -o ./public/css/output.css --watch",
