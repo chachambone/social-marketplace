@@ -140,10 +140,30 @@ bash
 # Test API endpoints
 curl http://localhost:3000/api/health
 
-# # Test registration
-# curl -X POST http://localhost:3000/api/users/register \
-#   -H "Content-Type: application/json" \
-#   -d '{"email":"test@test.com","username":"testuser","password":"123456","userType":"buyer"}'
+## 🧪 Test Accounts
+
+**All passwords are: `password123`**
+
+| Role | Email |
+|------|-------|
+| 🛍️ **Buyer** | `buyer@bidhive.com` |
+| 📦 **Seller (Amara)** | `amara@bidhive.com` |
+| 📦 **Seller (Kevin)** | `kevin@bidhive.com` |
+| 📦 **Seller (Zawadi)** | `zawadi@bidhive.com` |
+| 📦 **Seller (Brian)** | `brian@bidhive.com` |
+| 📦 **Seller (Jay)** | `jaychacha071@gmail.com` |
+
+### Quick Testing:
+
+**Buyer Experience:**
+- Email: `buyer@bidhive.com`
+- Password: `password123`
+- Test: Browse items, search, start bids, real-time chat
+
+**Seller Experience:**
+- Email: `amara@bidhive.com` (or any seller email)
+- Password: `password123`
+- Test: Dashboard stats, add items, manage products, respond to bids
 
 ��� Deployment
 Deploy to Render
