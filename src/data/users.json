@@ -16,5 +16,59 @@
     "userType": "seller",
     "createdAt": "2026-04-18T10:38:19.326Z",
     "lastLogin": "2026-04-19T15:07:16.306Z"
+  },
+  {
+    "id": "buyer_demo_id",
+    "email": "buyer@bidhive.com",
+    "username": "DemoBuyer",
+    "password": "$2b$10$w4tL7VEEFC96IGrKn2x7/ekIeCeXIXvfhrGBa8Sl1BXqOIKrJRMsO",
+    "userType": "buyer",
+    "createdAt": "2026-04-20T08:00:00.000Z",
+    "lastLogin": "2026-04-20T05:44:25.513Z"
+  },
+  {
+    "id": "seller_amara",
+    "email": "amara@bidhive.com",
+    "username": "Amara K.",
+    "password": "$2b$10$w4tL7VEEFC96IGrKn2x7/ekIeCeXIXvfhrGBa8Sl1BXqOIKrJRMsO",
+    "userType": "seller",
+    "createdAt": "2026-04-20T08:00:00.000Z",
+    "lastLogin": "2026-04-20T08:00:00.000Z"
+  },
+  {
+    "id": "seller_kevin",
+    "email": "kevin@bidhive.com",
+    "username": "Kevin M.",
+    "password": "$2b$10$w4tL7VEEFC96IGrKn2x7/ekIeCeXIXvfhrGBa8Sl1BXqOIKrJRMsO",
+    "userType": "seller",
+    "createdAt": "2026-04-20T08:00:00.000Z",
+    "lastLogin": "2026-04-20T08:00:00.000Z"
+  },
+  {
+    "id": "seller_zawadi",
+    "email": "zawadi@bidhive.com",
+    "username": "Zawadi W.",
+    "password": "$2b$10$w4tL7VEEFC96IGrKn2x7/ekIeCeXIXvfhrGBa8Sl1BXqOIKrJRMsO",
+    "userType": "seller",
+    "createdAt": "2026-04-20T08:00:00.000Z",
+    "lastLogin": "2026-04-20T08:00:00.000Z"
+  },
+  {
+    "id": "seller_brian",
+    "email": "brian@bidhive.com",
+    "username": "Brian O.",
+    "password": "$2b$10$w4tL7VEEFC96IGrKn2x7/ekIeCeXIXvfhrGBa8Sl1BXqOIKrJRMsO",
+    "userType": "seller",
+    "createdAt": "2026-04-20T08:00:00.000Z",
+    "lastLogin": "2026-04-20T05:45:20.157Z"
+  },
+  {
+    "id": "seller_jay",
+    "email": "jaychacha071@gmail.com",
+    "username": "Jay Chacha",
+    "password": "$2b$10$w4tL7VEEFC96IGrKn2x7/ekIeCeXIXvfhrGBa8Sl1BXqOIKrJRMsO",
+    "userType": "seller",
+    "createdAt": "2026-04-20T08:00:00.000Z",
+    "lastLogin": "2026-04-20T08:00:00.000Z"
   }
 ]
