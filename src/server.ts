@@ -55,6 +55,7 @@ const app = express();
 const PORT = parseInt(process.env.PORT || '3000', 10);
 const HOST = '0.0.0.0';
 
+
 // Initialize file session store
 const FileStoreSession = FileStore(session);
 
@@ -77,6 +78,38 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Enhanced session debugging middleware
+app.use((req: CustomRequest, res: Response, next: NextFunction) => {
+  console.log('='.repeat(80));
+  console.log(`📍 ${req.method} ${req.path}`);
+  console.log(`🍪 Cookie header: ${req.headers.cookie || 'NO COOKIE SENT'}`);
+  console.log(`🆔 Session ID from request: ${req.session.id}`);
+  console.log(`👤 Session UserId: ${req.session.userId}`);
+  console.log(`📦 Full session object:`, {
+    id: req.session.id,
+    userId: req.session.userId,
+    user: req.session.user,
+    cookie: req.session.cookie
+  });
+  
+  // Track session save operations
+  const originalSave = req.session.save.bind(req.session);
+  req.session.save = function(callback) {
+    console.log(`💾 SAVING SESSION - ID: ${this.id}, UserId: ${this.userId}`);
+    return originalSave(callback);
+  };
+  
+  // Track session regeneration
+  const originalRegenerate = req.session.regenerate.bind(req.session);
+  req.session.regenerate = function(callback) {
+    console.log(`🔄 REGENERATING SESSION - Old ID: ${req.session.id}`);
+    return originalRegenerate(callback);
+  };
+  
+  next();
+});
+
+
 // 3. Session middleware - FIXED for production
 const isProduction = process.env.NODE_ENV === 'production';
 
@@ -98,11 +131,11 @@ try {
 app.use(session({
   secret: process.env.SESSION_SECRET || 'your-secret-key-change-in-production',
   resave: false,
-  saveUninitialized: false, // Changed to false to prevent empty sessions
+  saveUninitialized: false,
   store: new FileStoreSession({
     path: sessionsDir,
-    ttl: 7 * 24 * 60 * 60, // 7 days
-    reapInterval: 60 * 60, // 1 hour
+    ttl: 7 * 24 * 60 * 60,
+    reapInterval: 60 * 60,
     retries: 3,
     logFn: function(msg) {
       if (process.env.NODE_ENV === 'development') {
@@ -111,16 +144,43 @@ app.use(session({
     }
   }),
   cookie: {
-    secure: isProduction, // Must be true in production with HTTPS
+    secure: isProduction, // Must be true in production
     httpOnly: true,
     maxAge: 7 * 24 * 60 * 60 * 1000,
-    sameSite: 'lax',
-    domain: isProduction ? '.onrender.com' : undefined // Important for Render
+    sameSite: 'lax', // CRITICAL: 'none' for cross-origin requests
+    domain: undefined, // Don't set domain - let browser handle it
+    path: '/'
   },
   name: 'bidhive.sid',
-  proxy: true, // Important for Render behind proxy
-  rolling: true // Reset cookie expiration on each response
+  proxy: true,
+  rolling: true
 }));
+
+
+// TEMPORARY TEST ROUTE - Remove after testing
+app.get('/test-set-session', (req: CustomRequest, res: Response) => {
+  req.session.userId = 'test-user-123';
+  req.session.user = {
+    id: 'test-user-123',
+    email: 'test@test.com',
+    username: 'testuser',
+    userType: 'buyer'
+  };
+  
+  req.session.save((err) => {
+    if (err) {
+      console.error('Session save error:', err);
+      return res.json({ error: 'Failed to save session' });
+    }
+    
+    console.log('✅ Test session set!');
+    res.json({ 
+      message: 'Session set successfully!',
+      sessionId: req.session.id,
+      userId: req.session.userId
+    });
+  });
+});
 
 // Add session debugging middleware
 app.use((req: CustomRequest, res: Response, next: NextFunction) => {
@@ -351,6 +411,30 @@ app.get('/logout', (req: CustomRequest, res: Response) => {
     res.redirect('/');
   });
 });
+
+// Add to server.ts - Check session status
+app.get('/api/check-session', (req: CustomRequest, res: Response) => {
+  console.log('🔍 Session check - ID:', req.session.id);
+  console.log('🔍 Session check - UserId:', req.session.userId);
+  console.log('🔍 Session check - Full session:', req.session);
+  console.log('🔍 Cookies received:', req.headers.cookie);
+  
+  if (req.session.userId) {
+    res.json({ 
+      authenticated: true, 
+      userId: req.session.userId,
+      user: req.session.user,
+      sessionId: req.session.id
+    });
+  } else {
+    res.json({ 
+      authenticated: false,
+      sessionId: req.session.id,
+      message: 'No user in session'
+    });
+  }
+});
+
 
 app.get('/profile', requireAuth, async (req: CustomRequest, res: Response) => {
   const user = res.locals.user;

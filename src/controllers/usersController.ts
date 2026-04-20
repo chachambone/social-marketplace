@@ -191,7 +191,6 @@ export const resetPassword = async (req: Request, res: Response) => {
   }
 };
 
-// usersController.ts - Fixed login function
 export const login = async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
@@ -216,6 +215,15 @@ export const login = async (req: Request, res: Response) => {
     user.lastLogin = new Date().toISOString();
     writeUsers(users);
 
+    // Set session data
+    req.session.userId = user.id;
+    req.session.user = {
+      id: user.id,
+      email: user.email,
+      username: user.username,
+      userType: user.userType
+    };
+    
     // Generate access token
     const accessToken = jwt.sign(
       { 
@@ -228,35 +236,30 @@ export const login = async (req: Request, res: Response) => {
       { expiresIn: authConfig.jwtExpiresIn } as jwt.SignOptions
     );
 
-    // Set session and wait for it to save
-    req.session.userId = user.id;
-    req.session.user = {
-      id: user.id,
-      email: user.email,
-      username: user.username,
-      userType: user.userType
-    };
-    
-    // IMPORTANT: Wait for session to save before sending response
+    // Save session and send response
     req.session.save((err) => {
       if (err) {
-        console.error('Session save error:', err);
+        console.error('❌ Session save error:', err);
         return res.status(500).json({ 
           success: false, 
           message: 'Failed to create session' 
         });
       }
       
-      const { password: _, ...userWithoutPassword } = user;
-      console.log(`✅ Login successful for: ${user.username}, Session ID: ${req.session.id}`);
+      console.log(`✅ Session saved - ID: ${req.session.id}, UserId: ${req.session.userId}`);
       
-        res.json({
-      success: true,
-      user: userWithoutPassword, // Make sure this has id, email, username, userType
-      accessToken,
-      userType: user.userType,
-    });
-
+      const { password: _, ...userWithoutPassword } = user;
+      
+      // Set cookie explicitly in response header
+      res.header('Access-Control-Allow-Credentials', 'true');
+      
+      res.json({
+        success: true,
+        user: userWithoutPassword,
+        accessToken,
+        userType: user.userType,
+        sessionId: req.session.id  // For debugging
+      });
     });
   } catch (error) {
     if (error instanceof AppError) throw error;
