@@ -1,12 +1,16 @@
 services:
   - type: web
     name: social-marketplace
-    runtime: node
-    buildCommand: npm run build;
-    startCommand: npm start
+    env: node
+    buildCommand: |
+      npm ci
+      npx tailwindcss -i ./public/css/tailwind.css -o ./public/css/output.css --minify
+      npm run generate:css
+      npm run build:ts:client
+      npm run build:ts:server
+    startCommand: npm run render-start
     envVars:
+      - key: NODE_ENV
+        value: production
       - key: NODE_VERSION
         value: 20.11.0
-      - key: PORT
-        value: 3000
-    plan: free
