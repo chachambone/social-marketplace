@@ -140,18 +140,18 @@ bash
 # Test API endpoints
 curl http://localhost:3000/api/health
 
-## 🧪 Test Accounts
+##  Test Accounts
 
 **All passwords are: `password123`**
 
 | Role | Email |
 |------|-------|
-| 🛍️ **Buyer** | `buyer@bidhive.com` |
-| 📦 **Seller (Amara)** | `amara@bidhive.com` |
-| 📦 **Seller (Kevin)** | `kevin@bidhive.com` |
-| 📦 **Seller (Zawadi)** | `zawadi@bidhive.com` |
-| 📦 **Seller (Brian)** | `brian@bidhive.com` |
-| 📦 **Seller (Jay)** | `jaychacha071@gmail.com` |
+| **Buyer** | `buyer@bidhive.com` |
+| **Seller (Amara)** | `amara@bidhive.com` |
+| **Seller (Kevin)** | `kevin@bidhive.com` |
+| **Seller (Zawadi)** | `zawadi@bidhive.com` |
+| **Seller (Brian)** | `brian@bidhive.com` |
+| **Seller (Jay)** | `jaychacha071@gmail.com` |
 
 ### Quick Testing:
 

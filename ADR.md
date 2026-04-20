@@ -37,68 +37,38 @@ Adopt TypeScript for both backend (Node.js) and frontend (Lit components) with n
 
 ---
 
-## ADR 002: Lit over React/Vue for UI Components
+## ADR 002: CSS-in-JS for Component Styling
 
 ### Context
-Need lightweight, reusable web components that work with Shadow DOM for encapsulation, without framework lock-in.
+Need component-scoped styling that works inside Shadow DOM without global CSS leakage.
 
 ### Decision
-Use Lit for all interactive UI components (LoginForm, ItemsGrid, SellerDashboard, BidDrawer).
+CSS-in-JS approach using `unsafeCSS` from Lit to inject styles directly into components.
 
 ### Options Considered
-- **React**: Large bundle size, requires JSX, no Shadow DOM
-- **Vue**: Good but adds abstraction layer
-- **Lit**: Native web components, tiny bundle (~5KB), Shadow DOM isolation
+- **Traditional CSS**: Global scope,容易冲突
+- **Tailwind CDN**: Easy but large bundle, no Shadow DOM support
+- **Tailwind + PostCSS**: Requires build step, extra complexity
+- **CSS-in-JS**: Scoped styles, no build step for CSS
 
 ### Chosen Solution
-Lit 3.x with TypeScript decorators for reactive properties and Shadow DOM styling.
+CSS-in-JS with `unsafeCSS` in Lit components, allowing Tailwind classes to work inside Shadow DOM.
 
 ### Consequences
 **Pros:**
-- Extremely small bundle size
-- Native browser support
-- True encapsulation with Shadow DOM
-- No framework lock-in
-- Excellent performance
+- Component-scoped styles (no leakage)
+- No separate CSS build step
+- Dynamic styling based on component state
+- Works perfectly with Shadow DOM
 
 **Cons:**
-- Smaller ecosystem than React
-- Shadow DOM makes global styling harder (solved with unsafeCSS)
+- `unsafeCSS` needed (bypasses security)
+- CSS strings inside JS files
+- No CSS hot reload during development
 
 ---
 
-## ADR 003: Tailwind CSS with PostCSS
-
-### Context
-Need utility-first styling that works inside Shadow DOM while maintaining design consistency.
-
-### Decision
-Tailwind CSS v3 with PostCSS compilation pipeline.
-
-### Options Considered
-- **Traditional CSS**: Scoped to components but repetitive
-- **CSS-in-JS**: Runtime overhead, complex setup
-- **Tailwind CDN**: Easy but large bundle, no customization
-- **Tailwind + PostCSS**: Optimized, tree-shaken, customizable
-
-### Chosen Solution
-Tailwind CSS compiled to CSS file, imported via `unsafeCSS()` in Lit components.
-
-### Consequences
-**Pros:**
-- Consistent design system
-- Small production CSS (only used classes)
-- No runtime CSS-in-JS overhead
-- Excellent developer experience
-
-**Cons:**
-- Requires build step
-- `unsafeCSS` needed for Shadow DOM
-- Learning utility classes initially
-
----
-
-## ADR 004: WebSocket for Real-time Chat & Bidding
+## ADR 003: WebSocket for Real-time Chat & Bidding
 
 ### Context
 Need real-time bidirectional communication for chat messages and instant bid notifications between buyers and sellers.
@@ -129,98 +99,71 @@ Native WebSocket with custom room-based messaging (messages grouped by itemId).
 
 ---
 
-## ADR 005: JWT + bcrypt for Authentication
+## ADR 004: Session-based Authentication with express-session
 
 ### Context
-Need secure, stateless authentication with role-based access (buyer/seller/admin).
+Need secure authentication with role-based access (buyer/seller/admin).
 
 ### Decision
-JWT (JSON Web Tokens) for sessions with bcrypt for password hashing.
+Session-based authentication using `express-session` middleware with in-memory session store.
 
 ### Options Considered
-- **Session-based (express-session)**: Stateful, harder to scale
+- **Session-based (express-session)**: Stateful, harder to scale but simpler for MVP
+- **JWT with localStorage**: Stateless, easier to scale
 - **OAuth2**: Overkill for this use case
-- **JWT with localStorage**: Stateless, easy to implement
 
 ### Chosen Solution
-JWT tokens stored in localStorage, bcrypt for password hashing (10 rounds), 7-day token expiry.
+`express-session` with in-memory session store, bcrypt for password hashing (10 rounds).
 
 ### Consequences
 **Pros:**
-- Stateless authentication
-- Easy to scale horizontally
-- Built-in token expiry
-- Role information embedded in token
+- Built-in session management
+- Automatic session expiry
+- HttpOnly cookies (more secure than localStorage)
+- No token management on client side
 
 **Cons:**
-- Token storage in localStorage (XSS vulnerability - mitigated by CSP)
-- Tokens cannot be invalidated easily without blacklist
+- Stateful - harder to scale horizontally
+- Sessions stored in memory (lost on restart)
+- Requires sticky sessions for multiple servers
+- Not ideal for serverless deployments
+
+**Future Improvement:** Move to Redis-based session store for horizontal scaling.
 
 ---
 
-## ADR 006: In-Memory Data Storage (MVP)
+## ADR 005: JSON Files for Data Persistence
 
 ### Context
-Need fast development iteration without database setup complexity for the assessment deadline.
+Need simple data storage without database setup complexity, while keeping data readable and editable during development.
 
 ### Decision
-In-memory JavaScript arrays for users and items, with optional JSON file persistence.
+JSON files stored in `src/data/` directory for users and items data.
 
 ### Options Considered
 - **PostgreSQL**: Production-ready but complex setup
 - **MongoDB**: Good but adds dependency
-- **JSON files**: Simple but concurrent write issues
-- **In-memory arrays**: Fastest for development
+- **In-memory arrays**: Data resets on restart
+- **JSON files**: Simple, version-controllable, human-readable
 
 ### Chosen Solution
-In-memory arrays imported directly in controllers, no file I/O for reads.
-
-JSON files for the browser to easily read the typescript.
+JSON files for data persistence with TypeScript interfaces for type safety. Server reads/writes to JSON files for CRUD operations.
 
 ### Consequences
 **Pros:**
 - Zero database setup
-- Fast development iteration
-- Easy to reset state
+- Data persists across server restarts
+- Human-readable and editable
+- Easy to version control with Git
+- Browser can directly fetch JSON files
 
 **Cons:**
-- Data resets on server restart
-- Not suitable for production
-- No concurrent request safety
+- Not suitable for high concurrency
+- File I/O can be slower than database
+- No query capabilities
+- Not scalable for production
 
 **Future Improvement:** Migrate to PostgreSQL or MongoDB for production.
-
----
-
-## ADR 007: Component-Based Architecture with Drawer Pattern
-
-### Context
-Need smooth UX for bidding workflow without page navigation.
-
-### Decision
-Right-side sliding drawer (3/4 width) with split view: 1/3 product details, 2/3 chat.
-
-### Options Considered
-- **Modal**: Blocks entire view, poor UX
-- **New Page**: Disrupts user flow
-- **Side Drawer**: Non-intrusive, maintains context
-
-### Chosen Solution
-Custom `bid-drawer` Lit component with CSS transitions and WebSocket integration.
-
-I used `Modal` when you click view item a block appears with the item.
-
-I also used `New Page` on my login form it disrupts user flow and takes you to login/register page.
-
-### Consequences
-**Pros:**
-- Smooth user experience
-- Preserves marketplace context
-- Responsive on mobile/desktop
-
-**Cons:**
-- Complex state management
-- WebSocket connection per drawer
 
 ---
 
@@ -228,8 +171,8 @@ I also used `New Page` on my login form it disrupts user flow and takes you to l
 
 | Date | ADR | Change |
 |------|-----|--------|
-| 2026-04-20 | 001-007 | Initial documentation |
-| 2026-04-20 | 004 | Added WebSocket reconnection logic |
-| 2026-04-20 | 005 | Enhanced JWT security notes |
+| 2026-04-20 | 001-005 | Initial documentation |
+| 2026-04-20 | 003 | Added WebSocket reconnection logic |
+| 2026-04-20 | 004 | Changed to express-session authentication |
 
 ---
