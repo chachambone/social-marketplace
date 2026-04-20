@@ -3,7 +3,7 @@ services:
     name: social-marketplace
     env: node
     buildCommand: |
-      npm ci
+      npm ci --include=de
       npx tailwindcss -i ./public/css/tailwind.css -o ./public/css/output.css --minify
       npm run generate:css
       npm run build:ts:client
