@@ -191,7 +191,7 @@ const redirectIfAuthenticated = (req: CustomRequest, res: Response, next: NextFu
 // Home page - serves different content based on user type
 app.get('/', async (req: CustomRequest, res: Response) => {
   try {
-    const apiUrl = process.env.API_URL ;
+    const apiUrl = process.env.APP_URL ;
     const response = await fetch(`${apiUrl}/api/items`);
     const data = await response.json();
     const listings = data.items || data || [];
