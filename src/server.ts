@@ -20,6 +20,15 @@ declare module 'express-session' {
   }
 }
 
+// Also add Express namespace augmentation
+declare global {
+  namespace Express {
+    interface Request {
+      session: session.Session & Partial<session.SessionData>;
+    }
+  }
+}
+
 // Extend Express Request type
 interface CustomRequest extends Request {
   session: session.Session & Partial<session.SessionData>;
