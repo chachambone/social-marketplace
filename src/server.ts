@@ -135,6 +135,7 @@ app.use((req: CustomRequest, res: Response, next: NextFunction) => {
 app.use((req: CustomRequest, res: Response, next: NextFunction) => {
   console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`);
   console.log('Session ID:', req.session.id);
+  console.log('Session is ===== :', req.session);
   console.log('Session UserId:', req.session.userId);
   next();
 });
