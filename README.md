@@ -1,185 +1,238 @@
-# 🐝 BidHive - Social Marketplace for Collectibles
+# BidHive - Social Marketplace
 
-A real-time social marketplace where buyers and sellers can negotiate prices, chat instantly, and close deals. Built with EJS for server-side rendering and Lit Web Components for interactive UI.
+A **full-stack marketplace** for buying and selling collectible items with **real-time bidding** and **WebSocket chat**. Built with TypeScript, Lit, and Tailwind CSS.
+
+## ��� Live Demo
+
+**Production URL:** [https://bid-hive-marketplace.onrender.com](https://bid-hive-marketplace.onrender.com)
+
+**Test Credentials:**
+- Buyer: `buyer@example.com` / `password123`
+- Seller: `seller@example.com` / `password123`
 
 ## ✨ Features
 
-### For Buyers
-- **Browse Items** - Search and filter products by category, price, and condition
-- **Real-time Bidding** - Make offers on items with instant bid updates
-- **Live Chat** - Direct messaging with sellers about specific items
-- **Favorites** - Save items to watchlist for later
-- **Secure Checkout** - Purchase items with payment confirmation
+### Authentication & Security
+- JWT-based authentication with 7-day expiry
+- bcrypt password hashing (10 rounds)
+- Role-based access (Buyer / Seller / Admin)
+- Welcome emails via nodemailer
 
-### For Sellers
-- **Seller Dashboard** - Manage all listings from one place
-- **Item Management** - Create, edit, and delete product listings
-- **Bid Management** - View all bids and select winning offers
-- **Real-time Chat** - Communicate with potential buyers
-- **Sales Tracking** - Monitor revenue and pending sales
+### Buyer Experience
+- Browse marketplace with search functionality
+- View item details and seller information
+- Start real-time bidding with WebSocket chat
+- Place bids and negotiate prices
+- Responsive grid layout for all devices
 
-### Technical Highlights
-- 🔌 **WebSocket Real-time Communication** - Instant chat and bid updates
-- 🎨 **Hybrid Rendering** - EJS for SEO + Lit Components for interactivity
-- 📱 **Fully Responsive** - Works flawlessly on mobile, tablet, and desktop
-- 🎯 **TypeScript** - Type-safe code across client and server
-- 💅 **Tailwind CSS** - Utility-first styling with dark mode support
+### Seller Dashboard
+- Real-time statistics (items, bids, chats, sales)
+- Create and manage product listings
+- Track highest bids on items
+- Chat with potential buyers
+- Delete or update listings
 
-## 🚀 Live Demo
+### Real-time Features
+- WebSocket-powered chat for each item
+- Instant bid notifications
+- Connection status indicator
+- Message history with timestamps
+- Automatic reconnection on disconnect
 
-[View Live Application](#) *(Add your deployed URL here)*
+### UI/UX
+- 100% Tailwind CSS (no custom CSS files)
+- Responsive design (mobile → desktop)
+- Smooth sliding drawer for bidding
+- Loading states and error handling
+- Shadow DOM encapsulation
 
-## 📋 Prerequisites
+## Tech Stack
 
-- Node.js (v18 or higher)
-- npm (v9 or higher)
+### Frontend
+| Technology | Purpose |
+|------------|---------|
+| **Lit 3.x** | Web components with Shadow DOM |
+| **Tailwind CSS 3** | Utility-first styling |
+| **TypeScript** | Type safety |
+| **WebSocket API** | Real-time communication |
 
-## 🛠️ Installation
+### Backend
+| Technology | Purpose |
+|------------|---------|
+| **Node.js 20+** | JavaScript runtime |
+| **Express 5.x** | Web framework |
+| **TypeScript** | Type safety |
+| **JWT** | Authentication |
+| **bcrypt** | Password hashing |
+| **uuid** | ID generation |
+| **nodemailer** | Email delivery |
 
-### 1. Clone the Repository
+### Development
+| Tool | Purpose |
+|------|---------|
+| **Concurrently** | Run multiple watch processes |
+| **Nodemon** | Auto-restart server |
+| **PostCSS** | Tailwind processing |
+| **Render** | Production hosting |
+
+## Project Structure
+social-marketplace/
+├── src/
+│ ├── controllers/ # Business logic (items, users)
+│ ├── routes/ # API endpoints
+│ ├── middleware/ # Auth, logger, error handling
+│ ├── config/ # App configuration
+│ ├── utils/ # Helpers (email, file)
+│ ├── data/ # In-memory data stores
+│ ├── views/ # EJS templates
+│ └── types/ # TypeScript interfaces
+├── public/
+│ └── js/
+│ └── components/ # Lit components
+│ ├── LoginForm.ts
+│ ├── ItemsGrid.ts
+│ ├── SellerDashboard.ts
+│ ├── bidDrawer.ts
+│ └── ItemCard.ts
+├── dist/ # Compiled output
+├── ADR.md # Architecture decisions
+├── render.yaml # Render deployment config
+└── package.json
+
+text
+
+## Getting Started
+
+### Prerequisites
+- Node.js 20+
+- npm 9+
+
+### Installation
 
 ```bash
-git clone https://github.com/chachambone/bidhive-marketplace.git
-cd bidhive-marketplace
+# Clone repository
+git clone https://github.com/chachambone/social-marketplace.git
+cd social-marketplace
 
-### .env
+# Install dependencies
+npm install
 
-`
-PORT=3000
-SESSION_SECRET=your-super-secret-session-key-change-this
-API_URL=http://localhost:3000
-NODE_ENV=development
+# Set up environment variables
+cp .env.example .env
+# Edit .env with your values
 
-`
-
-
-4. Build the Project
-bash
+# Build the project
 npm run build
-5. Run the Application
-Development Mode (with hot reload):
 
-bash
+# Run development server
 npm run dev
-Production Mode:
-
+Environment Variables
+env
+PORT=3000
+JWT_SECRET=your-super-secret-jwt-key
+SMTP_HOST=smtp.ethereal.email
+SMTP_PORT=587
+SMTP_USER=your-email@ethereal.email
+SMTP_PASS=your-password
+EMAIL_FROM=marketplace@yourdomain.com
+��� Testing
 bash
-npm start
-6. Access the Application
-text
-http://localhost:3000
-📁 Project Structure
-text
-bidhive-marketplace/
-├── src/
-│   ├── assets/          # Static assets (images, fonts)
-│   ├── client/          # Lit Web Components
-│   │   ├── components/  # Reusable Lit components
-│   │   ├── services/    # API and WebSocket services
-│   │   └── types/       # TypeScript type definitions
-│   ├── server/          # Express backend
-│   │   ├── middleware/  # Custom middleware
-│   │   ├── routes/      # API routes
-│   │   └── utils/       # Utility functions
-│   ├── views/           # EJS templates
-│   │   ├── pages/       # Page templates
-│   │   └── components/  # EJS partials
-│   └── scripts/         # Build scripts
-├── public/              # Compiled assets
-│   ├── css/            # Compiled CSS
-│   └── js/             # Compiled JavaScript
-├── sessions/            # File-based session storage
-├── package.json
-├── tailwind.config.js
-├── tsconfig.json
-└── README.md
-🏗️ Architecture
-Hybrid Rendering
-EJS Templates - Server-side rendered pages for SEO and initial load
+# Test API endpoints
+curl http://localhost:3000/api/health
 
-Lit Components - Client-side web components for interactive features
+# # Test registration
+# curl -X POST http://localhost:3000/api/users/register \
+#   -H "Content-Type: application/json" \
+#   -d '{"email":"test@test.com","username":"testuser","password":"123456","userType":"buyer"}'
 
-Component Loader - Dynamic component loading system
+��� Deployment
+Deploy to Render
+Push code to GitHub
 
-Real-time Communication
-WebSocket Server - Persistent connections for chat and bidding
+Create new Web Service on Render
 
-HTTP API - REST endpoints for data persistence
+Connect your repository
 
-Session Management - File-based session store for user auth
+Add environment variables
 
-State Management
-Component-Local State - Each Lit component manages its own @state
+Deploy!
 
-Local Storage - Persistent user preferences and favorites
+Render Configuration (render.yaml):
 
-Custom Events - Cross-component communication
+yaml
+services:
+  - type: web
+    name: bid-hive-marketplace
+    runtime: node
+    buildCommand: npm install && npm run build
+    startCommand: npm run start
+    envVars:
+      - key: NODE_VERSION
+        value: 20.0.0
+      - key: JWT_SECRET
+        generateValue: true
 
-🧪 Demo Accounts
-Buyer Account
-Email: buyer@bidhive.com
+��� API Endpoints
 
-Password: buyer123
+Authentication
+Method	Endpoint	Description
+POST	/api/users/register	Register new user
+POST	/api/users/login	Login user
+GET	/api/users/profile	Get user profile
+Items
+Method	Endpoint	Description
+GET	/api/items	Get all items (with search)
+GET	/api/items/:id	Get single item
+POST	/api/items	Create new item (seller)
+DELETE	/api/items/:id	Delete item (seller)
+WebSocket
+Endpoint	Description
+ws://host/ws?itemId=&userId=	Real-time chat connection
 
-Seller Account
-Email: seller@bidhive.com
+��� Assessment Requirements Fulfilled
 
-Password: seller123
+Requirement	Status
+EJS for server-side rendering	✅
+Lit components for interactivity	✅
+Tailwind CSS for styling	✅
+Search items by keyword	✅
+Buyers propose alternative prices	✅ (via bids)
+Direct messaging with WebSockets	✅
+Checkout and payment flow	✅
+Seller confirm payment and remove	✅
+Public GitHub repository	✅
+Live deployment	✅
+ADR.md documentation	✅
 
-Or register your own account
+��� Contributing
 
-🔧 Development Commands
-Command	Description
-npm run dev	Start development server with hot reload
-npm run build	Build for production
-npm start	Run production server
-npm run build:css	Compile Tailwind CSS
-npm run watch:ts:client	Watch and rebuild client TypeScript
-npm run watch:ts:server	Watch and rebuild server TypeScript
-🎯 Key Features Walkthrough
-As a Buyer
-Browse Items - Visit the homepage to see trending items
+Fork the repository
 
-Search & Filter - Use search bar and filters to find specific items
+Create feature branch (git checkout -b feature/amazing)
 
-Make an Offer - Click "Make Offer" on any item card
+Commit changes (git commit -m 'Add amazing feature')
 
-Chat with Seller - Use the built-in chat to negotiate
+Push to branch (git push origin feature/amazing)
 
-Purchase - Complete checkout when price is agreed
+Open Pull Request
 
-As a Seller
-Access Dashboard - Click "Start Selling" or navigate to /seller/dashboard
+��� License
+MIT License - see LICENSE file for details
 
-Add Item - Click "Add New Item" and fill in details
+��� Author
+Marycharity Mbone
 
-Upload Images - Drag & drop or paste image URLs
+GitHub: @chachambone
 
-Monitor Bids - View all incoming bids in real-time
+Email: mbonemarycharity@gmail.com
 
-Select Winner - Click on any bid to confirm the sale
+��� Acknowledgments
+InterIntel for the assessment opportunity
 
-🐛 Troubleshooting
-Sessions Not Persisting
-Ensure sessions/ directory exists and is writable
+Lit team for excellent web components
 
-Check SESSION_SECRET in .env file
+Tailwind CSS for amazing utility classes
 
-WebSocket Connection Failed
-Verify server is running on port 3000
+Render for free hosting
 
-Check for firewall blocking WebSocket connections
-
-Ensure API_URL in .env matches your server URL
-
-Components Not Loading
-Clear browser cache
-
-Check browser console for import errors
-
-Verify compiled JS exists in public/js/
-
-Tailwind Styles Missing
-Run npm run build:css to recompile
-
-Check tailwind.config.js for content paths
+⭐ Star this repository if you find it useful!

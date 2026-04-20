@@ -1,102 +1,229 @@
-# Architecture Decision Records (ADR) - Frontend
+# Architecture Decision Records (ADR)
 
-This document outlines the key frontend architectural and technical decisions made during the development of the BidHive Social Marketplace.
+This document captures the key architectural decisions made during the development of the Social Marketplace application.
 
-## ADR 1: Hybrid Rendering (EJS + Lit Components)
+---
 
-### Context
-The application required both SEO-friendly static content (homepage, categories) and highly interactive, real-time features (bidding interface, chat system, seller dashboard). A frontend architecture decision was needed to balance performance, developer experience, and user interactivity.
-
-### Options Considered
-1.  **Pure EJS with Vanilla JavaScript:** Simple to implement but leads to imperative, hard-to-maintain "spaghetti code" for complex UI interactions like the real-time chat drawer and bidding system.
-2.  **Full SPA Framework :** Excellent for interactivity but requires sending large JavaScript bundles upfront, hurts initial load time, and makes SEO more complex (requiring SSR solutions).
-3.  **Hybrid: EJS Shell + Lit Web Components (Chosen):** Use EJS to render the static page shell and initial data, then progressively enhance interactive areas with encapsulated Lit components.
-
-### Decision
-We chose the **Hybrid (EJS + Lit)** approach.
-
-### Trade-offs
--   **Pros:**
-    -   **Progressive Enhancement:** Core content renders instantly; JavaScript enhances only what's needed.
-    -   **Component Encapsulation:** Each Lit component (`<items-grid>`, `<bid-drawer>`, `<chat-drawer>`) has its own styles and logic, preventing CSS conflicts and global namespace pollution.
-    -   **SEO-Friendly:** Server-rendered content is immediately crawlable without JavaScript execution.
-    -   **Smaller Bundle:** Only load component code when needed via the component loader system.
--   **Cons:**
-    -   **Two Rendering Contexts:** Developers must switch between EJS templating logic and Lit component logic.
-    -   **Communication Overhead:** Passing data from server (EJS) to client components requires embedding JSON in the page or making API calls.
-
-## ADR 2: WebSocket-Based Real-Time Chat Over HTTP Polling
+## ADR 001: TypeScript as Primary Language
 
 ### Context
-A core requirement was a "direct messaging system between buyer and seller for each item." The backend server supported HTTP polling, but this creates poor user experience for real-time negotiation.
-
-### Options Considered
-1.  **HTTP Polling (Long/Short Polling):** Client repeatedly requests server for new messages. Simple to implement but creates latency (1-30s delays), wastes bandwidth, and feels sluggish for chat.
-2.  **Server-Sent Events (SSE):** Server can push messages to client, but communication is one-way only (client cannot send).
-3.  **WebSockets (Chosen):** Establishes a persistent, full-duplex connection for instant bi-directional communication.
+The application requires type safety, better IDE support, and maintainable code for a full-stack marketplace with complex data structures (users, items, messages, bids).
 
 ### Decision
-We implemented **WebSockets** for all real-time features (chat messages, bid notifications, winner announcements).
+Adopt TypeScript for both backend (Node.js) and frontend (Lit components) with no JavaScript files in the codebase.
 
-### Trade-offs
--   **Pros:**
-    -   **True Real-Time:** Messages appear instantly (<100ms latency), crucial for live bidding and negotiation.
-    -   **Bi-Directional:** Both buyer and seller can send/receive messages and bids simultaneously.
-    -   **Efficient:** Single persistent connection vs. thousands of polling requests.
-    -   **Native Support:** WebSocket API is built into modern browsers and integrates well with Lit lifecycle.
--   **Cons:**
-    -   **Connection Management:** Requires handling reconnections, heartbeats, and error states (implemented with status indicators).
-    -   **Stateless HTTP vs Stateful WS:** Debugging is harder as each client has an open connection.
-    -   **Scaling Complexity:** Would require sticky sessions or a pub/sub layer if horizontally scaled (out of scope).
+### Options Considered
+- **JavaScript**: Faster initial setup but lacks type safety
+- **TypeScript with allowJs**: Mixed codebase leads to confusion
+- **Pure TypeScript**: Strict typing, better refactoring
 
-## ADR 3: Component-Local State Management (No External Library)
+### Chosen Solution
+100% TypeScript codebase with separate tsconfig files for client and server:
+- `tsconfig.client.json` - For Lit web components
+- `tsconfig.server.json` - For Express backend
+- `tsconfig.json` - Root configuration
+
+### Consequences
+**Pros:**
+- Type safety across entire application
+- Better IDE autocomplete and error detection
+- Easier refactoring and maintenance
+- Self-documenting code
+
+**Cons:**
+- Longer initial setup
+- Compilation step required
+- Learning curve for team members
+
+---
+
+## ADR 002: Lit over React/Vue for UI Components
 
 ### Context
-The application has several complex Lit components with significant internal state: `<seller-dashboard>` (items, form state, uploads), `<items-grid>` (filters, search, view mode), and `<bid-drawer>` (messages, bids, connection status). A state management strategy was needed.
-
-### Options Considered
-1.  **Global Store (Redux/Zustand):** Centralizes all state. Powerful but introduces significant boilerplate and learning curve for a mid-sized application.
-2.  **Context API (Lit Context):** Lit has a built-in context system for sharing state across deep component trees. Adds abstraction but still requires providers.
-3.  **Component-Local `@state` + Props + Events (Chosen):** Each component manages its own reactive state, communicating with parents via properties and events.
+Need lightweight, reusable web components that work with Shadow DOM for encapsulation, without framework lock-in.
 
 ### Decision
-We chose **component-local state management** using Lit's `@state` decorator, with parent-child communication via properties and custom events.
+Use Lit for all interactive UI components (LoginForm, ItemsGrid, SellerDashboard, BidDrawer).
 
-### Trade-offs
--   **Pros:**
-    -   **Encapsulation:** Each component is self-contained and portable. The `<items-grid>` can be dropped anywhere without setting up a global store.
-    -   **Simplicity:** No additional libraries or boilerplate. State logic lives next to the component that uses it.
-    -   **Testability:** Components can be tested in isolation by setting properties directly.
-    -   **Reactive by Default:** Lit automatically re-renders when `@state` properties change.
--   **Cons:**
-    -   **Prop Drilling:** Passing data through multiple layers (e.g., user ID to `<bid-drawer>`) requires manual prop passing.
-    -   **Global State Duplication:** The user object is stored in `localStorage` and accessed by multiple components, leading to potential sync issues.
-    -   **Event Propagation:** Child-to-parent communication requires dispatching events, which can become verbose.
+### Options Considered
+- **React**: Large bundle size, requires JSX, no Shadow DOM
+- **Vue**: Good but adds abstraction layer
+- **Lit**: Native web components, tiny bundle (~5KB), Shadow DOM isolation
 
-### Mitigations Implemented
--   Used global custom events (`window.dispatchEvent`) for cross-component communication like theme changes.
--   Kept component trees shallow to minimize prop drilling.
+### Chosen Solution
+Lit 3.x with TypeScript decorators for reactive properties and Shadow DOM styling.
 
-## ADR 4: Dynamic Component Loader System
+### Consequences
+**Pros:**
+- Extremely small bundle size
+- Native browser support
+- True encapsulation with Shadow DOM
+- No framework lock-in
+- Excellent performance
+
+**Cons:**
+- Smaller ecosystem than React
+- Shadow DOM makes global styling harder (solved with unsafeCSS)
+
+---
+
+## ADR 003: Tailwind CSS with PostCSS
 
 ### Context
-The hybrid architecture meant that Lit components needed to be loaded on specific pages, sometimes multiple components per page. A manual approach of adding `<script type="module">` tags for each component per page would be repetitive and error-prone.
-
-### Options Considered
-1.  **Manual Imports per Page:** Add `<script type="module">` to each EJS page importing needed components. Simple but violates DRY principle; every new component requires updating every page template.
-2.  **Global Registration:** Import all components in a single `app.js` file. Causes unnecessary bundle bloat as components are loaded even when not used.
-3.  **Dynamic Component Loader (Chosen):** Create a reusable EJS partial that accepts a configuration array of components to load and renders a script to dynamically import them.
+Need utility-first styling that works inside Shadow DOM while maintaining design consistency.
 
 ### Decision
-We implemented a **`component-loader.ejs`** partial that accepts component configuration and dynamically imports Lit elements when the page loads.
+Tailwind CSS v3 with PostCSS compilation pipeline.
 
-### Example Implementation
-```ejs
-<%- include('component-loader', { 
-    components: [
-        { fileName: 'ItemsGrid.js', componentName: 'ItemsGrid', customName: 'items-grid' },
-        { fileName: 'LoginForm.js', componentName: 'LoginForm', customName: 'login-form' }
-    ],
-    basePath: '/components/',
-    autoLoad: true
-}) %>
+### Options Considered
+- **Traditional CSS**: Scoped to components but repetitive
+- **CSS-in-JS**: Runtime overhead, complex setup
+- **Tailwind CDN**: Easy but large bundle, no customization
+- **Tailwind + PostCSS**: Optimized, tree-shaken, customizable
+
+### Chosen Solution
+Tailwind CSS compiled to CSS file, imported via `unsafeCSS()` in Lit components.
+
+### Consequences
+**Pros:**
+- Consistent design system
+- Small production CSS (only used classes)
+- No runtime CSS-in-JS overhead
+- Excellent developer experience
+
+**Cons:**
+- Requires build step
+- `unsafeCSS` needed for Shadow DOM
+- Learning utility classes initially
+
+---
+
+## ADR 004: WebSocket for Real-time Chat & Bidding
+
+### Context
+Need real-time bidirectional communication for chat messages and instant bid notifications between buyers and sellers.
+
+### Decision
+WebSocket protocol with automatic reconnection for the bidding/chat drawer.
+
+### Options Considered
+- **HTTP Polling**: Simple but inefficient, high latency
+- **Server-Sent Events (SSE)**: One-way only, no bidirectional
+- **Socket.IO**: Feature-rich but larger overhead
+- **Native WebSocket**: Lightweight, native browser support
+
+### Chosen Solution
+Native WebSocket with custom room-based messaging (messages grouped by itemId).
+
+### Consequences
+**Pros:**
+- Low latency real-time communication
+- Bidirectional messaging
+- Automatic reconnection handling
+- Room-based message isolation
+
+**Cons:**
+- Requires WebSocket-aware hosting (Render supports this)
+- Connection management complexity
+- No fallback for old browsers
+
+---
+
+## ADR 005: JWT + bcrypt for Authentication
+
+### Context
+Need secure, stateless authentication with role-based access (buyer/seller/admin).
+
+### Decision
+JWT (JSON Web Tokens) for sessions with bcrypt for password hashing.
+
+### Options Considered
+- **Session-based (express-session)**: Stateful, harder to scale
+- **OAuth2**: Overkill for this use case
+- **JWT with localStorage**: Stateless, easy to implement
+
+### Chosen Solution
+JWT tokens stored in localStorage, bcrypt for password hashing (10 rounds), 7-day token expiry.
+
+### Consequences
+**Pros:**
+- Stateless authentication
+- Easy to scale horizontally
+- Built-in token expiry
+- Role information embedded in token
+
+**Cons:**
+- Token storage in localStorage (XSS vulnerability - mitigated by CSP)
+- Tokens cannot be invalidated easily without blacklist
+
+---
+
+## ADR 006: In-Memory Data Storage (MVP)
+
+### Context
+Need fast development iteration without database setup complexity for the assessment deadline.
+
+### Decision
+In-memory JavaScript arrays for users and items, with optional JSON file persistence.
+
+### Options Considered
+- **PostgreSQL**: Production-ready but complex setup
+- **MongoDB**: Good but adds dependency
+- **JSON files**: Simple but concurrent write issues
+- **In-memory arrays**: Fastest for development
+
+### Chosen Solution
+In-memory arrays imported directly in controllers, no file I/O for reads.
+
+### Consequences
+**Pros:**
+- Zero database setup
+- Fast development iteration
+- Easy to reset state
+
+**Cons:**
+- Data resets on server restart
+- Not suitable for production
+- No concurrent request safety
+
+**Future Improvement:** Migrate to PostgreSQL or MongoDB for production.
+
+---
+
+## ADR 007: Component-Based Architecture with Drawer Pattern
+
+### Context
+Need smooth UX for bidding workflow without page navigation.
+
+### Decision
+Right-side sliding drawer (3/4 width) with split view: 1/3 product details, 2/3 chat.
+
+### Options Considered
+- **Modal**: Blocks entire view, poor UX
+- **New Page**: Disrupts user flow
+- **Side Drawer**: Non-intrusive, maintains context
+
+### Chosen Solution
+Custom `bid-drawer` Lit component with CSS transitions and WebSocket integration.
+
+### Consequences
+**Pros:**
+- Smooth user experience
+- Preserves marketplace context
+- Responsive on mobile/desktop
+
+**Cons:**
+- Complex state management
+- WebSocket connection per drawer
+
+---
+
+## Version History
+
+| Date | ADR | Change |
+|------|-----|--------|
+| 2026-04-20 | 001-007 | Initial documentation |
+| 2026-04-20 | 004 | Added WebSocket reconnection logic |
+| 2026-04-20 | 005 | Enhanced JWT security notes |
+
+---
