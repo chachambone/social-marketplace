@@ -20,6 +20,15 @@ declare module 'express-session' {
   }
 }
 
+// Also add Express namespace augmentation
+declare global {
+  namespace Express {
+    interface Request {
+      session: session.Session & Partial<session.SessionData>;
+    }
+  }
+}
+
 // Extend Express Request type
 interface CustomRequest extends Request {
   session: session.Session & Partial<session.SessionData>;
@@ -51,10 +60,7 @@ const FileStoreSession = FileStore(session);
 
 // Create sessions directory
 import fs from 'fs';
-const sessionsDir = path.join(__dirname, '../sessions');
-if (!fs.existsSync(sessionsDir)) {
-  fs.mkdirSync(sessionsDir, { recursive: true });
-}
+
 
 // MIDDLEWARE - Order matters!
 
@@ -70,27 +76,60 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// 3. Session middleware
+// 3. Session middleware - FIXED for production
+const isProduction = process.env.NODE_ENV === 'production';
+
+// Create sessions directory with absolute path
+const sessionsDir = path.join(process.cwd(), 'sessions');
+if (!fs.existsSync(sessionsDir)) {
+  fs.mkdirSync(sessionsDir, { recursive: true });
+  console.log(`📁 Created sessions directory: ${sessionsDir}`);
+}
+
+// Verify write permissions
+try {
+  fs.accessSync(sessionsDir, fs.constants.W_OK);
+  console.log(`✅ Sessions directory is writable: ${sessionsDir}`);
+} catch (err) {
+  console.error(`❌ Sessions directory is NOT writable: ${sessionsDir}`, err);
+}
+
 app.use(session({
   secret: process.env.SESSION_SECRET || 'your-secret-key-change-in-production',
   resave: false,
-  saveUninitialized: false,
+  saveUninitialized: false, // Changed to false to prevent empty sessions
   store: new FileStoreSession({
     path: sessionsDir,
-    ttl: 7 * 24 * 60 * 60,
-    reapInterval: 60 * 60,
+    ttl: 7 * 24 * 60 * 60, // 7 days
+    reapInterval: 60 * 60, // 1 hour
     retries: 3,
-    logFn: function() {}
+    logFn: function(msg) {
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`[SessionStore] ${msg}`);
+      }
+    }
   }),
   cookie: {
-    secure: process.env.NODE_ENV === 'production',
+    secure: isProduction, // Must be true in production with HTTPS
     httpOnly: true,
     maxAge: 7 * 24 * 60 * 60 * 1000,
     sameSite: 'lax',
-    ...(process.env.NODE_ENV !== 'production' && { secure: false })
+    domain: isProduction ? '.onrender.com' : undefined // Important for Render
   },
-  name: 'bidhive.sid'
+  name: 'bidhive.sid',
+  proxy: true, // Important for Render behind proxy
+  rolling: true // Reset cookie expiration on each response
 }));
+
+// Add session debugging middleware
+app.use((req: CustomRequest, res: Response, next: NextFunction) => {
+  const oldSessionSave = req.session.save;
+  req.session.save = function(callback) {
+    console.log(`💾 Saving session ID: ${this.id}, UserId: ${this.userId}`);
+    return oldSessionSave.call(this, callback);
+  };
+  next();
+});
 
 // 4. Debug logging middleware
 app.use((req: CustomRequest, res: Response, next: NextFunction) => {
@@ -152,7 +191,7 @@ const redirectIfAuthenticated = (req: CustomRequest, res: Response, next: NextFu
 // Home page - serves different content based on user type
 app.get('/', async (req: CustomRequest, res: Response) => {
   try {
-    const apiUrl = process.env.API_URL ;
+    const apiUrl = process.env.APP_URL ;
     const response = await fetch(`${apiUrl}/api/items`);
     const data = await response.json();
     const listings = data.items || data || [];
