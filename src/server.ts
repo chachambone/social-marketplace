@@ -1,4 +1,6 @@
-// main server file - CORRECTED ORDER
+// ============================================
+// 1. IMPORTS & DECLARATIONS
+// ============================================
 import 'express-session';
 import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
@@ -6,8 +8,11 @@ import dotenv from 'dotenv';
 import path from 'path';
 import session from 'express-session';
 import FileStore from 'session-file-store';
+import { fileURLToPath } from 'url';
+import { createServer } from 'http';
+import fs from 'fs';
 
-// Extend session data interface BEFORE using it
+// Extend session data interface
 declare module 'express-session' {
   interface SessionData {
     userId: string;
@@ -20,7 +25,7 @@ declare module 'express-session' {
   }
 }
 
-// Also add Express namespace augmentation
+// Add Express namespace augmentation
 declare global {
   namespace Express {
     interface Request {
@@ -29,14 +34,12 @@ declare global {
   }
 }
 
-// Extend Express Request type
+// Custom Request type
 interface CustomRequest extends Request {
   session: session.Session & Partial<session.SessionData>;
 }
 
-// Rest of imports
-import { fileURLToPath } from 'url';
-import { createServer } from 'http';
+// Import routes and utilities
 import { requestLogger } from './middleware/logger.middleware.js';
 import { errorHandler } from './middleware/error.middleware.js';
 import itemsRouter from './routes/items.js';
@@ -44,76 +47,24 @@ import usersRouter from './routes/users.js';
 import messagesRouter from './routes/messages.js';
 import { setupWebSocketServer } from './webserver.js';
 import { getCurrentUser } from './utils/auth.js';
+import { readItems } from './utils/fileHelpers.js';
 
 // Load environment variables
 dotenv.config();
 
+// ============================================
+// 2. APP INITIALIZATION
+// ============================================
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = parseInt(process.env.PORT || '3000', 10);
 const HOST = '0.0.0.0';
-
-
-// Initialize file session store
+const isProduction = process.env.NODE_ENV === 'production';
 const FileStoreSession = FileStore(session);
 
 // Create sessions directory
-import fs from 'fs';
-import { readItems } from './utils/fileHelpers.js';
-
-
-// MIDDLEWARE - Order matters!
-
-// 1. CORS (only once)
-app.use(cors({
-  origin: true,
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
-
-// 2. JSON parsing
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
-// Enhanced session debugging middleware
-app.use((req: CustomRequest, res: Response, next: NextFunction) => {
-  console.log('='.repeat(80));
-  console.log(`📍 ${req.method} ${req.path}`);
-  console.log(`🍪 Cookie header: ${req.headers.cookie || 'NO COOKIE SENT'}`);
-  console.log(`🆔 Session ID from request: ${req.session.id}`);
-  console.log(`👤 Session UserId: ${req.session.userId}`);
-  console.log(`📦 Full session object:`, {
-    id: req.session.id,
-    userId: req.session.userId,
-    user: req.session.user,
-    cookie: req.session.cookie
-  });
-  
-  // Track session save operations
-  const originalSave = req.session.save.bind(req.session);
-  req.session.save = function(callback) {
-    console.log(`💾 SAVING SESSION - ID: ${this.id}, UserId: ${this.userId}`);
-    return originalSave(callback);
-  };
-  
-  // Track session regeneration
-  const originalRegenerate = req.session.regenerate.bind(req.session);
-  req.session.regenerate = function(callback) {
-    console.log(`🔄 REGENERATING SESSION - Old ID: ${req.session.id}`);
-    return originalRegenerate(callback);
-  };
-  
-  next();
-});
-
-
-// 3. Session middleware - FIXED for production
-const isProduction = process.env.NODE_ENV === 'production';
-
-// Create sessions directory with absolute path
 const sessionsDir = path.join(process.cwd(), 'sessions');
 if (!fs.existsSync(sessionsDir)) {
   fs.mkdirSync(sessionsDir, { recursive: true });
@@ -128,6 +79,24 @@ try {
   console.error(`❌ Sessions directory is NOT writable: ${sessionsDir}`, err);
 }
 
+// ============================================
+// 3. MIDDLEWARE (Order matters!)
+// ============================================
+
+// 3.1 CORS (Must be first)
+app.use(cors({
+  origin: true,
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
+  exposedHeaders: ['Set-Cookie']
+}));
+
+// 3.2 JSON parsing
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// 3.3 SESSION MIDDLEWARE (Critical - before any session access)
 app.use(session({
   secret: process.env.SESSION_SECRET || 'your-secret-key-change-in-production',
   resave: false,
@@ -144,11 +113,11 @@ app.use(session({
     }
   }),
   cookie: {
-    secure: isProduction, // Must be true in production
+    secure: isProduction,
     httpOnly: true,
     maxAge: 7 * 24 * 60 * 60 * 1000,
-    sameSite: 'lax', // CRITICAL: 'none' for cross-origin requests
-    domain: undefined, // Don't set domain - let browser handle it
+    sameSite: 'lax',
+    domain: undefined,
     path: '/'
   },
   name: 'bidhive.sid',
@@ -156,54 +125,19 @@ app.use(session({
   rolling: true
 }));
 
-
-// TEMPORARY TEST ROUTE - Remove after testing
-app.get('/test-set-session', (req: CustomRequest, res: Response) => {
-  req.session.userId = 'test-user-123';
-  req.session.user = {
-    id: 'test-user-123',
-    email: 'test@test.com',
-    username: 'testuser',
-    userType: 'buyer'
-  };
-  
-  req.session.save((err) => {
-    if (err) {
-      console.error('Session save error:', err);
-      return res.json({ error: 'Failed to save session' });
-    }
-    
-    console.log('✅ Test session set!');
-    res.json({ 
-      message: 'Session set successfully!',
-      sessionId: req.session.id,
-      userId: req.session.userId
-    });
-  });
-});
-
-// Add session debugging middleware
+// 3.4 Session debugging middleware (ONLY AFTER session is initialized)
 app.use((req: CustomRequest, res: Response, next: NextFunction) => {
-  const oldSessionSave = req.session.save;
-  req.session.save = function(callback) {
-    console.log(`💾 Saving session ID: ${this.id}, UserId: ${this.userId}`);
-    return oldSessionSave.call(this, callback);
-  };
+  console.log('='.repeat(80));
+  console.log(`📍 ${req.method} ${req.path}`);
+  console.log(`🍪 Cookie header: ${req.headers.cookie || 'NO COOKIE SENT'}`);
+  console.log(`🆔 Session ID: ${req.session?.id || 'NO SESSION'}`);
+  console.log(`👤 Session UserId: ${req.session?.userId || 'undefined'}`);
   next();
 });
 
-// 4. Debug logging middleware
-app.use((req: CustomRequest, res: Response, next: NextFunction) => {
-  console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`);
-  console.log('Session ID:', req.session.id);
-  console.log('Session is ===== :', req.session);
-  console.log('Session UserId:', req.session.userId);
-  next();
-});
-
-// 5. User middleware (makes user available to templates)
+// 3.5 User middleware (populates res.locals.user)
 app.use(async (req: CustomRequest, res: Response, next: NextFunction) => {
-  if (req.session.userId) {
+  if (req.session?.userId) {
     try {
       const user = await getCurrentUser(req.session.userId);
       res.locals.user = user;
@@ -219,45 +153,82 @@ app.use(async (req: CustomRequest, res: Response, next: NextFunction) => {
   next();
 });
 
-// 6. Request logger
+// 3.6 Request logger
 app.use(requestLogger);
 
-// Static files
+// ============================================
+// 4. STATIC FILES & VIEW ENGINE
+// ============================================
 app.use(express.static(path.join(__dirname, '../public')));
 app.use(express.static(path.join(__dirname, '../src/assets')));
 
-// View engine setup
 app.set('view engine', 'ejs');
 app.set('views', [
   path.join(__dirname, '../src/views/pages'),
   path.join(__dirname, '../src/views/components')
 ]);
 
-// Auth middleware
+// ============================================
+// 5. AUTH MIDDLEWARE
+// ============================================
 const requireAuth = (req: CustomRequest, res: Response, next: NextFunction) => {
-  if (!req.session.userId) {
+  if (!req.session?.userId) {
     return res.redirect('/login');
   }
   next();
 };
 
 const redirectIfAuthenticated = (req: CustomRequest, res: Response, next: NextFunction) => {
-  if (req.session.userId) {
+  if (req.session?.userId) {
     return res.redirect('/');
   }
   next();
 };
 
-// ROUTES
+// ============================================
+// 6. TEST ROUTES (For debugging)
+// ============================================
+app.get('/test-set-session', (req: CustomRequest, res: Response) => {
+  console.log('🔧 TEST ROUTE HIT');
+  
+  if (!req.session) {
+    return res.status(500).json({ error: 'Session not initialized' });
+  }
+  
+  req.session.userId = 'test-user-123';
+  req.session.user = {
+    id: 'test-user-123',
+    email: 'test@test.com',
+    username: 'testuser',
+    userType: 'buyer'
+  };
+  
+  req.session.save((err) => {
+    if (err) {
+      console.error('Session save error:', err);
+      return res.status(500).json({ error: 'Failed to save session' });
+    }
+    
+    console.log('✅ Test session set successfully!');
+    res.json({ 
+      message: 'Session set successfully!',
+      sessionId: req.session.id,
+      userId: req.session.userId
+    });
+  });
+});
 
-// Home page - serves different content based on user type
+// ============================================
+// 7. PAGE ROUTES
+// ============================================
+
+// Home page
 app.get('/', async (req: CustomRequest, res: Response) => {
   try {
-   let items = readItems();
+    let items = readItems();
     const listings = items || [];
     
-    // If user is logged in, pass user data to template
-    if (req.session.userId && res.locals.user) {
+    if (req.session?.userId && res.locals.user) {
       return res.render('index', {
         title: 'BidHive - Social Marketplace for Collectibles',
         description: 'Buy, sell, and negotiate prices on collectible items',
@@ -268,7 +239,6 @@ app.get('/', async (req: CustomRequest, res: Response) => {
       });
     }
     
-    // Not logged in
     res.render('index', {
       title: 'BidHive - Social Marketplace for Collectibles',
       description: 'Buy, sell, and negotiate prices on collectible items',
@@ -290,18 +260,16 @@ app.get('/', async (req: CustomRequest, res: Response) => {
   }
 });
 
-// Dashboard - role-based redirect
+// Dashboard
 app.get('/dashboard', requireAuth, (req: CustomRequest, res: Response) => {
   const user = res.locals.user;
   
-  // Redirect based on user type
   if (user?.userType === 'seller') {
     return res.redirect('/seller/dashboard');
   } else if (user?.userType === 'buyer') {
     return res.redirect('/');
   }
   
-  // Default fallback
   res.render('dashboard', {
     title: 'Dashboard - BidHive',
     description: 'Buy, sell, and negotiate prices on collectible items',
@@ -309,7 +277,7 @@ app.get('/dashboard', requireAuth, (req: CustomRequest, res: Response) => {
   });
 });
 
-
+// Browse page
 app.get('/browse', requireAuth, (req: CustomRequest, res: Response) => {
   const user = res.locals.user;
   
@@ -327,7 +295,6 @@ app.get('/browse', requireAuth, (req: CustomRequest, res: Response) => {
 });
 
 // Seller dashboard
-// Seller dashboard route
 app.get('/seller/dashboard', requireAuth, (req: CustomRequest, res: Response) => {
   const user = res.locals.user;
   
@@ -341,7 +308,6 @@ app.get('/seller/dashboard', requireAuth, (req: CustomRequest, res: Response) =>
     return res.redirect('/dashboard');
   }
   
-  // Ensure all required fields are present
   const userForTemplate = {
     id: user.id,
     name: user.name || user.username,
@@ -355,22 +321,6 @@ app.get('/seller/dashboard', requireAuth, (req: CustomRequest, res: Response) =>
     user: userForTemplate,
     userType: 'seller',
     description: 'Buy, sell, and negotiate prices on collectible items',
-
-  });
-});
-
-// Buyer dashboard
-app.get('browse', requireAuth, (req: CustomRequest, res: Response) => {
-  const user = res.locals.user;
-  
-  if (user?.userType !== 'buyer') {
-    return res.redirect('/');
-  }
-  
-  res.render('browser', {
-    title: 'BidHive',
-    user: user,
-    userType: 'buyer'
   });
 });
 
@@ -412,30 +362,7 @@ app.get('/logout', (req: CustomRequest, res: Response) => {
   });
 });
 
-// Add to server.ts - Check session status
-app.get('/api/check-session', (req: CustomRequest, res: Response) => {
-  console.log('🔍 Session check - ID:', req.session.id);
-  console.log('🔍 Session check - UserId:', req.session.userId);
-  console.log('🔍 Session check - Full session:', req.session);
-  console.log('🔍 Cookies received:', req.headers.cookie);
-  
-  if (req.session.userId) {
-    res.json({ 
-      authenticated: true, 
-      userId: req.session.userId,
-      user: req.session.user,
-      sessionId: req.session.id
-    });
-  } else {
-    res.json({ 
-      authenticated: false,
-      sessionId: req.session.id,
-      message: 'No user in session'
-    });
-  }
-});
-
-
+// Profile page
 app.get('/profile', requireAuth, async (req: CustomRequest, res: Response) => {
   const user = res.locals.user;
   
@@ -451,7 +378,7 @@ app.get('/profile', requireAuth, async (req: CustomRequest, res: Response) => {
   });
 });
 
-
+// Seller chats
 app.get('/seller/chats', requireAuth, (req: CustomRequest, res: Response) => {
   const user = res.locals.user;
   
@@ -471,11 +398,31 @@ app.get('/seller/chats', requireAuth, (req: CustomRequest, res: Response) => {
   });
 });
 
+// ============================================
+// 8. API ROUTES
+// ============================================
 
-// API routes
-app.use('/api/items', itemsRouter);
-app.use('/api/users', usersRouter);
-app.use('/api/messages', messagesRouter);
+// Session check endpoint
+app.get('/api/check-session', (req: CustomRequest, res: Response) => {
+  console.log('🔍 Session check - ID:', req.session?.id);
+  console.log('🔍 Session check - UserId:', req.session?.userId);
+  console.log('🔍 Cookies received:', req.headers.cookie);
+  
+  if (req.session?.userId) {
+    res.json({ 
+      authenticated: true, 
+      userId: req.session.userId,
+      user: req.session.user,
+      sessionId: req.session.id
+    });
+  } else {
+    res.json({ 
+      authenticated: false,
+      sessionId: req.session?.id,
+      message: 'No user in session'
+    });
+  }
+});
 
 // Health check
 app.get('/api/health', (req: Request, res: Response) => {
@@ -487,23 +434,32 @@ app.get('/api/health', (req: Request, res: Response) => {
   });
 });
 
-// Debug route
+// API routers
+app.use('/api/items', itemsRouter);
+app.use('/api/users', usersRouter);
+app.use('/api/messages', messagesRouter);
+
+// Debug route (development only)
 if (process.env.NODE_ENV === 'development') {
   app.get('/debug/session', (req: CustomRequest, res: Response) => {
     res.json({
-      sessionId: req.session.id,
-      userId: req.session.userId,
+      sessionId: req.session?.id,
+      userId: req.session?.userId,
       sessionData: req.session
     });
   });
 }
 
-// Error handling
+// ============================================
+// 9. ERROR HANDLERS (MUST BE LAST)
+// ============================================
+
+// Error handling middleware
 app.use(errorHandler);
 
-
+// 404 handler - Catch all unmatched routes
 app.use((req: CustomRequest, res: Response) => {
-  // Check if the request is for an API endpoint
+  // API endpoints
   if (req.path.startsWith('/api/')) {
     return res.status(404).json({ 
       error: 'API endpoint not found',
@@ -512,7 +468,7 @@ app.use((req: CustomRequest, res: Response) => {
     });
   }
   
-  // Check if the request is for a static asset
+  // Static assets
   const staticExtensions = ['.css', '.js', '.png', '.jpg', '.jpeg', '.gif', '.svg', '.ico', '.json', '.map'];
   const isStaticAsset = staticExtensions.some(ext => req.path.endsWith(ext));
   
@@ -524,7 +480,7 @@ app.use((req: CustomRequest, res: Response) => {
     });
   }
   
-  // For HTML pages, render a nice 404 page
+  // HTML pages
   const user = res.locals.user || null;
   
   res.status(404).render('404', {
@@ -536,13 +492,15 @@ app.use((req: CustomRequest, res: Response) => {
   });
 });
 
-
-// Create HTTP server and attach WebSocket
+// ============================================
+// 10. SERVER STARTUP
+// ============================================
 const server = createServer(app);
 setupWebSocketServer(server);
 
 server.listen(PORT, HOST, () => {
-  console.log(`Server running on http://${HOST}:${PORT}`);
-  console.log(`WebSocket server ready for real-time chat`);
-  console.log(`Session storage: ${sessionsDir}`);
+  console.log(`🚀 Server running on http://${HOST}:${PORT}`);
+  console.log(`🔌 WebSocket server ready for real-time chat`);
+  console.log(`💾 Session storage: ${sessionsDir}`);
+  console.log(`🌐 Environment: ${process.env.NODE_ENV || 'development'}`);
 });
