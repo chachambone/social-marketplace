@@ -60,6 +60,7 @@ const FileStoreSession = FileStore(session);
 
 // Create sessions directory
 import fs from 'fs';
+import { readItems } from './utils/fileHelpers.js';
 
 
 // MIDDLEWARE - Order matters!
@@ -192,10 +193,8 @@ const redirectIfAuthenticated = (req: CustomRequest, res: Response, next: NextFu
 // Home page - serves different content based on user type
 app.get('/', async (req: CustomRequest, res: Response) => {
   try {
-    const apiUrl = process.env.APP_URL ;
-    const response = await fetch(`${apiUrl}/api/items`);
-    const data = await response.json();
-    const listings = data.items || data || [];
+   let items = readItems();
+    const listings = items || [];
     
     // If user is logged in, pass user data to template
     if (req.session.userId && res.locals.user) {

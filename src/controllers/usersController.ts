@@ -73,7 +73,7 @@ export const register = async (req: Request, res: Response) => {
 
     // Generate secure system password
     const systemGeneratedPassword = generateSecurePassword(12);
-    console.log(`🔐 System generated password for ${username}: ${systemGeneratedPassword}`);
+    console.log(` System generated password for ${username}: ${systemGeneratedPassword}`);
 
     // Hash the password for storage
     const hashedPassword = await bcrypt.hash(systemGeneratedPassword, authConfig.bcryptSaltRounds);

@@ -15,4 +15,4 @@ export const tailwindCSS = \`${cssContent.replace(/`/g, '\\`')}\`;
 `;
 
 fs.writeFileSync(outputPath, tsContent);
-console.log('✅ Generated styles.ts from CSS');
+console.log('Generated styles.ts from CSS');
