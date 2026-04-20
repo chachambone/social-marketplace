@@ -48,42 +48,109 @@ export const register = async (req: Request, res: Response) => {
   try {
     const { email, username, userType = 'buyer' } = req.body;
 
+    // ==================== INPUT VALIDATION ====================
     
-
-    // Validate required fields
-    if (!email || !username) {
-      throw new AppError('Email and username are required', 400);
+    // 1. Email validation
+    const emailRegex = /^[^\s@]+@([^\s@]+\.)+[^\s@]+$/;
+    const isValidEmail = email && typeof email === 'string' && emailRegex.test(email);
+    
+    if (!isValidEmail) {
+      throw new AppError('Invalid email format. Please provide a valid email address.', 400);
     }
+    
+    // Sanitize email (lowercase, trim)
+    const sanitizedEmail = email.toLowerCase().trim();
+    
+    // 2. Username validation
+    if (!username || typeof username !== 'string') {
+      throw new AppError('Username is required and must be a string', 400);
+    }
+    
+    const trimmedUsername = username.trim();
+    
+    // Username length validation
+    if (trimmedUsername.length < 3) {
+      throw new AppError('Username must be at least 3 characters long', 400);
+    }
+    
+    if (trimmedUsername.length > 30) {
+      throw new AppError('Username must not exceed 30 characters', 400);
+    }
+    
+    // Username format validation (alphanumeric, underscore, hyphen only)
+    const usernameRegex = /^[a-zA-Z0-9_-]+$/;
+    if (!usernameRegex.test(trimmedUsername)) {
+      throw new AppError('Username can only contain letters, numbers, underscores, and hyphens', 400);
+    }
+    
+    // Username reserved words check
+    const reservedUsernames = ['admin', 'root', 'system', 'support', 'info', 'webmaster'];
+    if (reservedUsernames.includes(trimmedUsername.toLowerCase())) {
+      throw new AppError('This username is reserved and cannot be used', 400);
+    }
+    
+    // 3. UserType validation
+    const validUserTypes = ['buyer', 'seller', 'admin'];
+    let sanitizedUserType = userType;
+    
+    if (userType && typeof userType === 'string') {
+      const lowerUserType = userType.toLowerCase();
+      if (!validUserTypes.includes(lowerUserType)) {
+        throw new AppError(`Invalid userType. Must be one of: ${validUserTypes.join(', ')}`, 400);
+      }
+      sanitizedUserType = lowerUserType;
+    } else {
+      sanitizedUserType = 'buyer'; // default
+    }
+    
+    // 4. Additional security checks
+    // Prevent SQL injection patterns (even for non-SQL DBs)
+    const dangerousPatterns = /[;'"`\\]|--|\b(OR|AND|SELECT|INSERT|DELETE|UPDATE|DROP|CREATE|ALTER)\b/i;
+    if (dangerousPatterns.test(sanitizedEmail) || dangerousPatterns.test(trimmedUsername)) {
+      throw new AppError('Invalid characters detected in input', 400);
+    }
+    
+    // 5. Email domain validation (optional but recommended)
+    const blockedDomains = ['tempmail.com', 'throwaway.com', 'mailinator.com'];
+    const emailDomain = sanitizedEmail.split('@')[1];
+    if (blockedDomains.includes(emailDomain?.toLowerCase())) {
+      throw new AppError('Temporary email addresses are not allowed', 400);
+    }
+    
+    // 6. Rate limiting check (should be implemented at middleware level)
+    // This is a placeholder for rate limiting validation
+    const ipAddress = req.ip || req.socket.remoteAddress;
+    // await checkRateLimit(ipAddress, 'register');
 
-    // ... existing validation code ...
+    // ==================== EXISTING CODE BELOW ====================
 
     const users: User[] = readUsers();
     
-    // Check if email already exists
-    const existingEmail = users.find(u => u.email === email);
+    // Check if email already exists (case-insensitive)
+    const existingEmail = users.find(u => u.email.toLowerCase() === sanitizedEmail);
     if (existingEmail) {
       throw new AppError('Email already registered', 409);
     }
     
-    // Check if username already exists
-    const existingUsername = users.find(u => u.username === username);
+    // Check if username already exists (case-insensitive)
+    const existingUsername = users.find(u => u.username.toLowerCase() === trimmedUsername.toLowerCase());
     if (existingUsername) {
       throw new AppError('Username already taken', 409);
     }
 
     // Generate secure system password
     const systemGeneratedPassword = generateSecurePassword(12);
-    console.log(`🔐 System generated password for ${username}: ${systemGeneratedPassword}`);
+    console.log(`System generated password for ${trimmedUsername}: ${systemGeneratedPassword}`);
 
     // Hash the password for storage
     const hashedPassword = await bcrypt.hash(systemGeneratedPassword, authConfig.bcryptSaltRounds);
     
     const newUser: User = {
       id: uuidv4(),
-      email,
-      username,
+      email: sanitizedEmail,
+      username: trimmedUsername,
       password: hashedPassword,
-      userType: userType as 'buyer' | 'seller' | 'admin',
+      userType: sanitizedUserType as 'buyer' | 'seller' | 'admin',
       createdAt: new Date().toISOString(),
       lastLogin: new Date().toISOString(),
     };
@@ -93,16 +160,18 @@ export const register = async (req: Request, res: Response) => {
 
     // Send welcome email with the generated password
     const emailResult = await sendWelcomeEmail({ 
-      email, 
-      username, 
+      email: sanitizedEmail, 
+      username: trimmedUsername, 
       password: systemGeneratedPassword 
     });
 
     if (!emailResult.success) {
-      console.error('⚠️ Failed to send welcome email, but user was created');
+      console.error('Failed to send welcome email, but user was created');
+      // Log for monitoring
+      console.error(`Welcome email failed for user: ${newUser.id}, email: ${sanitizedEmail}`);
     }
 
-    // 🔥 CRITICAL FIX: Set session on successful registration
+    // CRITICAL FIX: Set session on successful registration
     if (req.session) {
       req.session.userId = newUser.id;
       req.session.user = {
@@ -121,13 +190,14 @@ export const register = async (req: Request, res: Response) => {
 
     // Generate access token
     const accessToken = jwt.sign(
-      { id: newUser.id, email, username, userType: newUser.userType },
+      { id: newUser.id, email: sanitizedEmail, username: trimmedUsername, userType: newUser.userType },
       authConfig.jwtSecret,
       { expiresIn: authConfig.jwtExpiresIn } as jwt.SignOptions
     );
 
     const { password: _, ...userWithoutPassword } = newUser;
     
+    // Return success response with sanitized data
     res.status(201).json({
       success: true,
       message: 'User registered successfully. Credentials have been sent to your email.',
@@ -138,6 +208,7 @@ export const register = async (req: Request, res: Response) => {
         temporaryPassword: systemGeneratedPassword 
       }),
     });
+    
   } catch (error) {
     if (error instanceof AppError) throw error;
     console.error('Registration error:', error);
