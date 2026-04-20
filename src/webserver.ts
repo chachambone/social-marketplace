@@ -41,7 +41,7 @@ export function setupWebSocketServer(server: Server) {
     // Load and send previous messages
     const previousMessages = getMessagesByItemId(itemId);
     if (previousMessages.length > 0) {
-      console.log(`📜 Sending ${previousMessages.length} previous messages for item ${itemId}`);
+      console.log(`Sending ${previousMessages.length} previous messages for item ${itemId}`);
       ws.send(JSON.stringify({
         type: 'history',
         messages: previousMessages,
@@ -59,7 +59,7 @@ export function setupWebSocketServer(server: Server) {
     ws.on('message', (data: string) => {
       try {
         const message: WebSocketMessage = JSON.parse(data.toString());
-        console.log(`📨 Received: ${message.type} from ${message.senderName}`);
+        console.log(`Received: ${message.type} from ${message.senderName}`);
         
         // Create persistent message object
         const persistentMessage: ChatMessage = {
@@ -94,7 +94,7 @@ export function setupWebSocketServer(server: Server) {
     });
   });
   
-  console.log('✅ WebSocket server initialized with chat persistence');
+  console.log('WebSocket server initialized with chat persistence');
   
   return wss;
 }

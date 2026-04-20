@@ -68,7 +68,7 @@ const FileStoreSession = FileStore(session);
 const sessionsDir = path.join(process.cwd(), 'sessions');
 if (!fs.existsSync(sessionsDir)) {
   fs.mkdirSync(sessionsDir, { recursive: true });
-  console.log(`📁 Created sessions directory: ${sessionsDir}`);
+  console.log(`Created sessions directory: ${sessionsDir}`);
 }
 
 // Verify write permissions
@@ -128,10 +128,10 @@ app.use(session({
 // 3.4 Session debugging middleware (ONLY AFTER session is initialized)
 app.use((req: CustomRequest, res: Response, next: NextFunction) => {
   console.log('='.repeat(80));
-  console.log(`📍 ${req.method} ${req.path}`);
-  console.log(`🍪 Cookie header: ${req.headers.cookie || 'NO COOKIE SENT'}`);
-  console.log(`🆔 Session ID: ${req.session?.id || 'NO SESSION'}`);
-  console.log(`👤 Session UserId: ${req.session?.userId || 'undefined'}`);
+  console.log(`${req.method} ${req.path}`);
+  console.log(`Cookie header: ${req.headers.cookie || 'NO COOKIE SENT'}`);
+  console.log(`Session ID: ${req.session?.id || 'NO SESSION'}`);
+  console.log(`Session UserId: ${req.session?.userId || 'undefined'}`);
   next();
 });
 
@@ -209,7 +209,7 @@ app.get('/test-set-session', (req: CustomRequest, res: Response) => {
       return res.status(500).json({ error: 'Failed to save session' });
     }
     
-    console.log('✅ Test session set successfully!');
+    console.log('Test session set successfully!');
     res.json({ 
       message: 'Session set successfully!',
       sessionId: req.session.id,
@@ -499,8 +499,8 @@ const server = createServer(app);
 setupWebSocketServer(server);
 
 server.listen(PORT, HOST, () => {
-  console.log(`🚀 Server running on http://${HOST}:${PORT}`);
-  console.log(`🔌 WebSocket server ready for real-time chat`);
-  console.log(`💾 Session storage: ${sessionsDir}`);
-  console.log(`🌐 Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`Server running on http://${HOST}:${PORT}`);
+  console.log(`WebSocket server ready for real-time chat`);
+  console.log(`Session storage: ${sessionsDir}`);
+  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
 });
